@@ -1,0 +1,59 @@
+// div class="tile-container">
+//     <div class="tile">
+//         <div class="tile-image"><img
+//                 src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSAjLXw-FmFp04SgCt9BHZYm5ytnrybicRrBb2cKsKc8M1PzDRi_rIpMCyMDL1CLMlBBKc&usqp=CAU"
+//                 alt=""></div>
+//         <div class="tile-footer">
+//             <span class="tile-title">Title</span>
+//             <span class="tile-btn"><i data-feather="arrow-right"></i></span>
+//         </div>
+//     </div>
+// </div>
+
+.tile-container {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    flex-wrap: wrap;
+    margin: 10px;
+}
+
+.tile {
+    width: 25vw;
+    min-width: calc(max(150px, 15vw));
+    border: 0.3vh solid #000000;
+    margin: 1vh;
+
+    transition: all 0.3s ease-in-out;
+
+    &:hover {
+        cursor: pointer;
+        transform: scale(1.075);
+    }
+}
+
+.tile-title {
+    font-weight: bold;
+    font-size: larger;
+}
+
+.tile-image > img {
+    width: 100%;
+}
+
+.tile-footer {
+    height: 2vh;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2vh;
+}
+
+.tile-btn {
+    border: 0.2vh solid #fa190d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 15px;
+}

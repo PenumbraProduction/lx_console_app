@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en" style="height: 100%">
+
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="Content-Security-Policy"
+              content="default-src 'self' 'unsafe-inline'; img-src 'self' https://* http://* data: 'unsafe-eval';">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <title>LX Console</title>
+
+        <link rel="stylesheet" href="../node_modules/bootstrap/dist/css/bootstrap.css">
+
+        <script src="../node_modules/jquery/dist/jquery.min.js"></script>
+        <script src="../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+        <!-- HIGHLIHTJS STYLES -->
+        <link id="codeStyleLink" rel="stylesheet" href="../node_modules/highlight.js/styles/atom-one-dark.css">
+        <!-- HIGHLIHTJS STYLES -->
+        <link id="codeOverlayLink" rel="stylesheet">
+
+        <link id="customStylesheetLink" rel="stylesheet">
+        <script src="../assets/vendor/fontawesome-web/js/all.min.js"></script>
+    </head>
+
+    <body style="height: 100%">
+        <div id="main">
+            <div id="sidebar">
+                <div id="sidebar-main" class="sidebar-section">
+                    <li class="sidebar-item sidebar-link" onclick="renderer.showScreen('Home')"
+                        data-links-to="Home">
+                        <span><i data-feather="home"></i></span>
+                        <span>Home</span>
+                    </li>
+                    <li class="sidebar-item sidebar-link" onclick="renderer.showScreen('Help')" data-links-to="Help">
+                        <span><i data-feather="help-circle"></i></span>
+                        <span>Help</span>
+                    </li>
+                    <li class="sidebar-item sidebar-link" onclick="renderer.showScreen('Settings')"
+                        data-links-to="Settings">
+                        <span><i data-feather="settings"></i></span>
+                        <span>Settings</span>
+                    </li>
+                </div>
+                <!-- Section -->
+                <div id="sidebar-windows" class="sidebar-section">
+                    <li class="sidebar-item sidebar-link" onclick="renderer.showScreen('Patch')"
+                        data-links-to="Patch">
+                        <span><i data-feather="pocket"></i></span>
+                        <span>Patch</span>
+                    </li>
+                    <li class="sidebar-item sidebar-link" onclick="renderer.showScreen('Outputs')"
+                        data-links-to="Outputs">
+                        <span><i data-feather="upload"></i></span>
+                        <span>Outputs</span>
+                    </li>
+                    <li class="sidebar-item sidebar-link" onclick="renderer.showScreen('Groups')"
+                        data-links-to="Groups">
+                        <span><i data-feather="archive"></i></span>
+                        <span>Groups</span>
+                    </li>
+                    <li class="sidebar-item sidebar-link" onclick="renderer.showScreen('Playbacks')"
+                        data-links-to="Playbacks">
+                        <span><i data-feather="play"></i></span>
+                        <span>Playbacks</span>
+                    </li>
+
+                    <li class="sidebar-item sidebar-link" onclick="renderer.showScreen('Colour')"
+                        data-links-to="Colour">
+                        <span><i class="fa fa-palette"></i></span>
+                        <span>Colour</span>
+                    </li>
+                    <li class="sidebar-item sidebar-link" onclick="renderer.showScreen('Shape')"
+                        data-links-to="Shape">
+                        <span><i class="fa-brands fa-first-order-alt"></i></span>
+                        <span>Shape</span>
+                    </li>
+                    <li class="sidebar-item sidebar-link" onclick="renderer.showScreen('Beam')"
+                        data-links-to="Beam">
+                        <span><i data-feather="aperture"></i></span>
+                        <span>Beam</span>
+                    </li>
+                    <li class="sidebar-item sidebar-link" onclick="renderer.showScreen('Position')"
+                        data-links-to="Position">
+                        <span><i class="fa fa-arrows-up-down-left-right"></i></span>
+                        <span>Position</span>
+                    </li>
+                </div>
+            </div>
+            <div id="sidebar-toggle" onclick="renderer.toggleSidebar();"><i data-feather="chevrons-left"></i></div>
+            <div id="sidebarResizer"></div>
+            <div id="content" class="scroll-enabled">
+
+                <div class="screen" id="Home">
+                    <div class="title">Home</div>
+                </div>
+
+                <div class="screen" id="Help">
+                    <div class="title">Help</div>
+                </div>
+
+                <div class="screen" id="Settings">
+                    <div class="title">Settings</div>
+
+                    <div class="container-content">
+
+                    </div>
+                </div>
+
+                <div class="screen" id="Outputs">
+                    <div class="title">Outputs</div>
+                    <div id="outputOptionsContainer" class="container-row">
+                        <select name="outputType" id="OutputTypeSelect">
+                            <option value="raw">Raw</option>
+                            <option value="channels">Channels</option>
+                        </select>
+                    </div>
+                    <div id="rawOutputContainer" class="scroll-enabled"></div>
+                </div>
+
+                <div class="screen is-cmd-token" id="Patch">
+                    <div class="title">Patch</div>
+                    <div class="container-row">
+                        <button class="button w-15" onclick="renderer.openPatchFixturesModal()">Add Fixtures</button>
+                        <button class="button w-5" onclick="renderer.forceRefreshPatchList()"><i
+                               data-feather="refresh-cw"></i></button>
+                    </div>
+
+                    <div id="patchListContainer" class="scroll-enabled">
+                        <div class="patchCol" id="patchListChannelCol">
+                            <div class="patchColHeader" id="patchListChannelColHeader">
+                                Channel
+                            </div>
+                            <div class="patchColContents" id="patchListChannelContents">
+
+                            </div>
+                        </div>
+                        <div class="patchCol" id="patchListNameCol">
+                            <div class="patchColHeader" id="patchListNameColHeader">
+                                Name
+                            </div>
+                            <div class="patchColContents" id="patchListNameContents">
+
+                            </div>
+                        </div>
+                        <div class="patchCol" id="patchListProfileCol">
+                            <div class="patchColHeader" id="patchListProfileColHeader">
+                                Profile
+                            </div>
+                            <div class="patchColContents" id="patchListProfileContents">
+
+                            </div>
+                        </div>
+                        <div class="patchCol" id="patchListDmxCol">
+                            <div class="patchColHeader" id="patchListDmxColHeader">
+                                DMX
+                            </div>
+                            <div class="patchColContents" id="patchListDmxContents">
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="screen is-cmd-token" id="Groups">
+                    <div class="title">Groups</div>
+                </div>
+
+                <div class="screen is-cmd-token" id="Playbacks">
+                    <div class="title">Playbacks</div>
+                </div>
+
+                <div class="screen is-cmd-token" id="Colour">
+                    <div class="title">Colour</div>
+                </div>
+
+                <div class="screen is-cmd-token" id="Shape">
+                    <div class="title">Shape</div>
+                </div>
+
+                <div class="screen is-cmd-token" id="Beam">
+                    <div class="title">Beam</div>
+                </div>
+
+                <div class="screen is-cmd-token" id="Position">
+                    <div class="title">Position</div>
+                </div>
+
+            </div>
+
+            <div id="commandLine">
+                <span id="commandLineIconContainer" class="commandLineIconContainer"><i data-feather="chevron-right"
+                       id="commandLineIcon"></i></span>
+                <span id="commandLineInput"></span>
+                <span id="commandLineHistoryExpander" class="commandLineBtnContainer"
+                      onclick="renderer.toggleCommandHistory()"><i data-feather="chevrons-up"></i></span>
+            </div>
+            <div id="commandLineHistory" style="display: none;"></div>
+        </div>
+
+        <div id="notificationContainer"></div>
+
+        <!-- Patch Fixtures Modal -->
+        <div class="modal fade" id="patchFixturesModal">
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content modal-lg" style="max-height: 600px;">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Patch Fixtures</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="patchFixtureModalMessage" class="modal-message bad"></div>
+                        <form onsubmit="renderer.patchFixtures()">
+                            <label for="fixtureBrandSelect">Select Brand</label>
+                            <select name="fixture-brand" id="fixtureBrandSelect"
+                                    onchange="renderer.setPatchBrand()"></select><br>
+
+                            <label for="fixtureTypeSelect">Select Fixture</label>
+                            <select name="fixture-type" id="fixtureTypeSelect" onchange="renderer.setPatchType()"
+                                    class="disabled" disabled></select><br>
+
+                            <label for="fixtureChannelModeSelect">Channel Mode</label>
+                            <select name="fixture-type" id="fixtureChannelModeSelect"
+                                    onchange="renderer.setPatchChannelMode()" class="disabled" disabled></select><br>
+
+                            <label for="numberOfFixtures">Number of Fixtures</label>
+                            <input type="number" min=1 name="numberOfFixtures" id="numberOfFixtures"
+                                   onchange="renderer.setPatchNumber()" class="disabled" disabled><br>
+
+                            <label for="startDmxAddress">Starting DMX Address</label>
+                            <input type="number" min=1 max=512 name="startDmxAddress" id="startDmxAddress"
+                                   onchange="renderer.setPatchDmxInitial()" class="disabled" disabled><br>
+
+                            <label for="dmxAddressOffset">DMX Offset</label>
+                            <input type="number" min=1 max=512 name="dmxAddressOffset" id="dmxAddressOffset"
+                                   onchange="renderer.setPatchDmxOffset()" class="disabled" disabled><br>
+
+                            <label for="startChannel">Starting Channel</label>
+                            <input type="number" min=1 name="startChannel" id="startChannel"
+                                   onchange="renderer.setPatchStartChannel()"><br>
+
+                            <input type="submit" value="Patch" id="patchSubmit" class="disabled" disabled>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- END Patch Fixtures Modal -->
+        <div class="modal fade" id="renameFixturesModal">
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content modal-lg" style="max-height: 600px;">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Patch Fixtures</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form onsubmit="renderer.renameFixture()">
+                            <label for="fixtureRenameInput">Fixture Name</label>
+                            <input type="text" id="fixtureRenameInput"><br>
+
+                            <input type="submit" value="Patch" id="patchSubmit">
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Rename Fixture Modal -->
+
+        <!-- END Rename Fixture Modal -->
+
+        <!-- WHAT'S NEW MODAL -->
+        <div class="modal fade" id="whatsNewModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content modal-lg" style="max-height: 600px;">
+                    <div class="modal-header">
+                        <!-- VERSION CHANGE NOTICE -->
+                        <h4 class="modal-title" id="whatsNewModalTitle">What's new - Version 1.0.0</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <h5>Changelog</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- WHAT'S NEW MODAL -->
+
+        <!-- NEW USER POPUP -->
+        <div class="modal fade unselectable" id="firstUseModal" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content shadow-lg">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Welcome</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        It looks like this is the first time you're using LX Console.<br><br>
+                        Click Continue if you would like to see a short guide about how to use LX Console.
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="mybtn" data-dismiss="modal">No thanks</button>
+                        <button type="button" class="mybtn-primary" data-dismiss="modal"
+                                onclick="console.log('TODO: Implement Help thingy');">Continue</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- NEW USER POPUP -->
+
+
+        <script src="../out/renderer.js"></script>
+    </body>
+
+</html>

@@ -1,0 +1,107 @@
+{
+    "name": "lxconsole",
+    "productName": "lxconsole",
+    "version": "1.0.0",
+    "description": "LX Console - DMX interface",
+    "homepage": "https://github.com/lordfarquhar/lx_console_app",
+    "repository": "https://github.com/lordfarquhar/lx_console_app",
+    "main": "out/main/main.js",
+    "scripts": {
+        "start": "tsc && npx webpack --mode development && npx electron .",
+        "_dev-main": "tsc --watch",
+        "_dev-renderer": "webpack --watch --mode development",
+        "dev": "npm-run-all -p _dev-main _dev-renderer",
+        "serve": "electron .",
+        "dist": "tsc && npx webpack --mode production && npx electron-builder"
+    },
+    "build": {
+        "appId": "io.github.lordfarquhar.lxconsole",
+        "productName": "Lx Console",
+        "copyright": "CC-BY-NC-4.0",
+        "buildVersion": "1.0.0",
+        "mac": {
+            "target": "dmg",
+            "icon": "./assets/icons/icon.icns",
+            "category": "public.app-category.productivity"
+        },
+        "win": {
+            "target": [
+                "nsis",
+                "zip"
+            ],
+            "icon": "./assets/icons/icon.ico",
+            "signingHashAlgorithms": [
+                "sha256",
+                "sha1"
+            ],
+            "signAndEditExecutable": true,
+            "publisherName": "Inanis"
+        },
+        "nsis": {
+            "oneClick": "false",
+            "allowToChangeInstallationDirectory": "true",
+            "shortcutName": "Lx Console"
+        },
+        "linux": {
+            "target": [
+                "deb",
+                "tar.xz"
+            ],
+            "icon": "./assets/icons/icon.icns",
+            "vendor": "Inanis",
+            "category": "Utility",
+            "executableName": "Lx Console",
+            "description": "A free, simple, and customizable DMX interface. Made by Inanis",
+            "synopsis": "DMX interface"
+        }
+    },
+    "author": {
+        "name": "Inanis"
+    },
+    "license": "CC-BY-NC-4.0",
+    "devDependencies": {
+        "@types/bootstrap": "^5.1.6",
+        "@types/electron-prompt": "^1.6.1",
+        "@types/feather-icons": "^4.7.0",
+        "@types/jquery": "^3.5.14",
+        "@types/katex": "^0.11.1",
+        "@types/node": "^16.9.4",
+        "@types/orderedmap": "^1.0.0",
+        "@types/semver": "^7.3.9",
+        "@types/uuid": "^8.3.4",
+        "@types/validator": "^13.6.3",
+        "@typescript-eslint/eslint-plugin": "^5.1.0",
+        "@typescript-eslint/parser": "^5.1.0",
+        "autoprefixer": "^10.4.5",
+        "css-loader": "^6.7.1",
+        "electron": "17.0.0",
+        "eslint": "^8.0.1",
+        "eslint-plugin-import": "^2.24.2",
+        "node-sass": "^7.0.1",
+        "npm-run-all": "^4.1.5",
+        "postcss-cli": "^9.1.0",
+        "postcss-loader": "^6.2.1",
+        "sass-loader": "^12.6.0",
+        "style-loader": "^3.3.1",
+        "ts-loader": "^9.2.6",
+        "typescript": "^4.4.3",
+        "webpack": "^5.61.0",
+        "webpack-cli": "^4.9.1"
+    },
+    "dependencies": {
+        "@electron/remote": "^2.0.1",
+        "@treverix/custom-electron-titlebar": "^4.2.0",
+        "bootstrap": "^4.6.1",
+        "electron-context-menu": "^3.1.1",
+        "electron-prompt": "^1.7.0",
+        "feather-icons": "^4.28.0",
+        "highlight.js": "^10.6.0",
+        "jquery": "^3.5.1",
+        "katex": "^0.13.18",
+        "semver": "^7.3.5",
+        "serialport": "^10.4.0",
+        "typescript-json-serializer": "^3.4.5",
+        "uuid": "^8.3.2",
+        "validator": "^13.7.0"
+    }
+}

@@ -1,0 +1,241 @@
+.container-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+
+@for $value from 1 through 20 {
+    $width: percentage($value/12);
+
+    .w-#{$value} {
+        width: $width;
+    }
+}
+
+#main {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+}
+
+#sidebar {
+    width: var(--sidebar-width);
+    max-width: var(--sidebar-width);
+    min-width: var(--sidebar-width);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+
+    border-right: 0.2vw solid var(--main-fg);
+
+    &.hidden {
+        display: none;
+
+        // move toggle button to edge (toggle button MUST be the next element in html)
+        & + #sidebar-toggle {
+            left: 0;
+        }
+    }
+}
+
+#sidebar-toggle {
+    color: var(--main-fg);
+    position: absolute;
+    top: 0;
+    left: var(--sidebar-width);
+    padding: var(--sidebar-toggle-padding);
+    // border: 0.2vh solid var(--main-fg);
+    // border-left: 0;
+    // margin: var(--sidebar-toggle-margin);
+    z-index: 999;
+
+    &:hover {
+        color: var(--hover-fg);
+        background-color: var(--hover-bg);
+        cursor: pointer;
+    }
+}
+
+#sidebarResizer {
+    color: var(--main-fg);
+    position: relative;
+    top: 0;
+    // left: var(--sidebar-width);
+    left: 0;
+    height: 100%;
+    width: 10px;
+    z-index: 999;
+
+    &:hover {
+        color: var(--hover-fg);
+        background-color: var(--hover-bg);
+        cursor: col-resize;
+    }
+}
+
+.sidebar-section {
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-direction: column;
+    flex-direction: column;
+    padding-left: 0;
+    margin-bottom: 0;
+    border-radius: 0.25rem;
+
+    &:not(:last-child):after {
+        content: "";
+        border-top: 0.2vh solid var(--main-fg);
+        margin-top: 0.5vh;
+        margin-bottom: 0.5vh;
+    }
+}
+
+.sidebar-item {
+    position: relative;
+    display: block;
+    padding: 0.75rem 0.3rem 0.75rem 0.5rem;
+    color: var(--main-fg);
+    background-color: var(--main-bg);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+
+    // make ellipsis instead of newline or clipping text
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    span:not(:last-child) {
+        margin-right: 5px;
+    }
+}
+
+.sidebar-link {
+    &.active {
+        color: var(--accent-fg);
+        background-color: var(--accent-bg);
+    }
+
+    &:hover {
+        color: var(--hover-fg);
+        background-color: var(--hover-bg);
+        cursor: pointer;
+    }
+}
+
+@mixin centerAndSquareCommandLine {
+    display: flex;
+    flex-direction: column;
+
+    align-items: center;
+    justify-content: center;
+
+    height: var(--commandLine-height);
+    width: var(--commandLine-height);
+}
+
+#commandLine {
+    border: 1px solid var(--main-fg);
+    position: fixed;
+    width: calc(100% - var(--sidebar-width));
+    height: var(--commandLine-height);
+    bottom: 0;
+    right: 0;
+    font-size: calc(var(--commandLine-height) - 10px);
+    line-height: calc(var(--commandLine-height) - 10px);
+
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+
+    .commandLineIconContainer {
+        @include centerAndSquareCommandLine;
+    }
+
+    .commandLineBtnContainer {
+        @include centerAndSquareCommandLine;
+
+        &:hover {
+            color: var(--hover-fg);
+            background-color: var(--hover-bg);
+            cursor: pointer;
+        }
+    }
+
+    #commandLineInput {
+        flex-grow: 1;
+    }
+
+    &.sidebar-hidden {
+        width: 100%;
+    }
+}
+
+#commandLineHistory {
+    border: 1px solid var(--main-fg);
+    background-color: var(--main-bg);
+    position: fixed;
+
+    width: calc(100% - var(--sidebar-width));
+
+    &.sidebar-hidden {
+        width: 100%;
+    }
+
+    bottom: var(--commandLine-height);
+    right: 0;
+    font-size: calc(var(--commandLine-height) - 10px);
+    line-height: calc(var(--commandLine-height) - 10px);
+
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-start;
+
+    .historicCommand {
+        &:not(:first-child) {
+            border-top: 1px solid var(--hover-bg);
+        }
+
+        padding-left: var(--commandLine-height);
+        padding-bottom: 0.5vh;
+        width: 100%;
+
+        &:hover {
+            color: var(--hover-fg);
+            background-color: var(--hover-bg);
+            cursor: pointer;
+        }
+    }
+}
+
+#content {
+    flex-grow: 1;
+    margin-top: 0.2vw;
+    margin-left: calc(var(--sidebar-toggle-padding) * 2 + var(--feather-size)); // + var(--sidebar-toggle-margin) * 2
+    margin-right: calc(var(--sidebar-toggle-padding) * 2 + var(--feather-size)); // + var(--sidebar-toggle-margin) * 2
+    overflow: hidden;
+    height: calc(100% - var(--commandLine-height) - var(--commandLine-margin));
+}
+
+.screen {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.container-content {
+    margin-top: 2vh;
+}
+
+.feather {
+    width: var(--feather-size);
+    height: var(--feather-size);
+    vertical-align: -3px;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+}

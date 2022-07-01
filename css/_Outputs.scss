@@ -1,0 +1,35 @@
+#Outputs {
+
+    #outputOptionsContainer {
+        margin-bottom: 1.5vh;
+    }
+
+    #rawOutput {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+
+        .channel {
+            width: 30px;
+            // height: 55px;
+            aspect-ratio: 1;
+            border: 1px solid black;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-items: center;
+            align-items: center;
+            
+            &.selected {
+                border-color: #ffe521;
+            }
+
+            & > span:last-child {
+                &.stable {
+                    color: white;
+                }
+                color:red;
+            }
+        }
+    }
+}

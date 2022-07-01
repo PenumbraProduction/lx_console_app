@@ -1,0 +1,26 @@
+
+// list element markers
+::marker {
+    font-weight: 600;
+}
+
+
+.title {
+    font-size: 1.5em;
+    font-weight: 600;
+    // border-bottom: 3px solid;
+    // border-image: linear-gradient(to right, red, rgba(0, 0, 0, 0)) 1 100%;
+    position: relative;
+    width: fit-content;
+    margin-bottom: 5vh;
+
+    &:after {
+        content: "";
+        background: -webkit-linear-gradient(left, var(--main-bg) 0%, var(--main-fg) 50%, var(--main-bg) 100%);
+        display: block;
+        height: 3px;
+        width: 100%;
+        position: absolute;
+        bottom: -3px;
+    }
+}
