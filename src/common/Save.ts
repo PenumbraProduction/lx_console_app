@@ -1,10 +1,10 @@
 import { Serializable, JsonProperty } from "typescript-json-serializer";
-import { TopLevelNotebookContainer } from "./NotebookItem";
+import { ShowData } from "./ShowFile";
 
 @Serializable()
 export class Save {
     @JsonProperty()
-    pages: TopLevelNotebookContainer;
+    shows: ShowData[];
 
     @JsonProperty()
     version = "1.0.0"; // VERSION CHANGE NOTICE

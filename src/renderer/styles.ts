@@ -17,7 +17,6 @@ document.querySelectorAll("[data-awesome]").forEach((elt: HTMLElement) => {
 	const svg = document.createElement("img");
 	svg.src = `../assets/vendor/fontawesome-desktop/svgs/regular/${elt.dataset.awesome}.svg`;
 
-
 	elt.replaceWith(svg);
 	// `<object data="${elt.dataset.awesome}.svg"></object>`
 });
@@ -29,6 +28,16 @@ $(document).on("click", function (event) {
 	}
 });
 
+// prevent text selection
+
+window.onload = () => {
+	document.onselectstart = () => {
+		return false;
+	};
+};
+// document.onselectstart = () => {
+// 	return false;
+// };
 
 // type ScrollPos = { top: number; left: number };
 // interface scrollListenerCallback {

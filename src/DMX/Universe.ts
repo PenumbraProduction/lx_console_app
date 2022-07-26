@@ -1,10 +1,11 @@
 import { EventEmitter } from "events";
 import * as SerialPort from "serialport";
 import { wait } from "./util/time";
+import { UniverseData } from "../types/Types";
 
-export type UniverseData = {
-	[key: number]: number;
-};
+// let frame = 0;
+// let time = 0;
+// let prevTime = 0;
 
 export interface IUniverseDriver extends EventEmitter {
 	init(serialPortName: string): Promise<void>;
@@ -36,13 +37,13 @@ export class Universe extends EventEmitter implements IUniverseDriver {
 
 		this._readyToWrite = false;
 
-		this._sendInterval = 46;
+		this._sendInterval = 44;
 	}
 
-	getUniverseBuffer() : Buffer {
+	getUniverseBuffer(): Buffer {
 		// ? is this inefficient? Could I not just send whatever value is in index 0 without any effect?
 		return Buffer.concat([Buffer.from([0]), this._universeBuffer.slice(1)]);
-	}	
+	}
 
 	init(serialPortName: string): Promise<void> {
 		this._serialPortName = serialPortName;
@@ -99,6 +100,12 @@ export class Universe extends EventEmitter implements IUniverseDriver {
 	}
 
 	async sendUniverse(): Promise<void> {
+		// frame++;
+		// if (frame % 60 == 0) {
+		// 	time = performance.now();
+		// 	console.log(time - prevTime);
+		// 	prevTime = time;
+		// }
 		if (!this._serialPort.writable) return;
 		if (!this._readyToWrite) return;
 
@@ -108,7 +115,6 @@ export class Universe extends EventEmitter implements IUniverseDriver {
 		this._serialPort.set({ brk: false, rts: false });
 		await wait(1);
 
-		
 		const dataToWrite = this.getUniverseBuffer();
 
 		this._readyToWrite = false;
@@ -128,7 +134,7 @@ export class Universe extends EventEmitter implements IUniverseDriver {
 	}
 
 	updateSelect(channels: Array<number>, val: number): void {
-		for(const c of channels) {
+		for (const c of channels) {
 			this._universeBuffer[c] = val;
 		}
 		this.emit("bufferUpdate");

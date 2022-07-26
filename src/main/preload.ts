@@ -6,7 +6,7 @@ import { compare } from "semver";
 import { deserialize } from "typescript-json-serializer";
 import { UserPrefs } from "../common/UserPrefs";
 import { Save } from "../common/Save";
-import { NotebookItem } from "../common/NotebookItem";
+import { ShowData } from "../common/ShowFile";
 
 const version = "1.0.0"; // VERSION CHANGE NOTICE
 
@@ -38,8 +38,8 @@ export type MainAPI = {
 	savePrefs(prefsObj: UserPrefs): void;
 	getSave(): Save;
 	saveData(saveObj: Save): void;
-	loadPageData(fileName: string): NotebookItem;
-	savePage(page : NotebookItem) : void;
+	loadPageData(fileName: string): ShowData;
+	savePage(page : ShowData) : void;
 	savePageData(fileName: string, docObject: { [key: string]: any }): void;
 	openSaveLocation(): void;
 	changeSaveLocation(): void;
@@ -97,16 +97,16 @@ const api: MainAPI = {
 		}
 	},
 
-	loadPageData: (fileName: string): NotebookItem => {
+	loadPageData: (fileName: string): ShowData => {
 		if (!fileName.includes("/") && !fileName.includes("\\")) {
 			if (fs.existsSync(saveLocation + "/notes/" + fileName)) {
-				return deserialize<NotebookItem>(fs.readFileSync(saveLocation + "/notes/" + fileName, "utf-8").toString(), NotebookItem);
+				return deserialize<ShowData>(fs.readFileSync(saveLocation + "/notes/" + fileName, "utf-8").toString(), ShowData);
 			}
 		}
 		return null;
 	},
 
-	savePage: (page : NotebookItem): void => {
+	savePage: (page : ShowData): void => {
 		if (!page.skeleton.fileName.includes("/") && !page.skeleton.fileName.includes("\\") && canSaveData == true) {
 			fs.writeFileSync(saveLocation + "/notes/" + page.skeleton.fileName, JSON.stringify(page), "utf-8");
 		}

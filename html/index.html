@@ -26,8 +26,7 @@
         <div id="main">
             <div id="sidebar">
                 <div id="sidebar-main" class="sidebar-section">
-                    <li class="sidebar-item sidebar-link" onclick="renderer.showScreen('Home')"
-                        data-links-to="Home">
+                    <li class="sidebar-item sidebar-link" onclick="renderer.showScreen('Home')" data-links-to="Home">
                         <span><i data-feather="home"></i></span>
                         <span>Home</span>
                     </li>
@@ -43,8 +42,7 @@
                 </div>
                 <!-- Section -->
                 <div id="sidebar-windows" class="sidebar-section">
-                    <li class="sidebar-item sidebar-link" onclick="renderer.showScreen('Patch')"
-                        data-links-to="Patch">
+                    <li class="sidebar-item sidebar-link" onclick="renderer.showScreen('Patch')" data-links-to="Patch">
                         <span><i data-feather="pocket"></i></span>
                         <span>Patch</span>
                     </li>
@@ -53,10 +51,20 @@
                         <span><i data-feather="upload"></i></span>
                         <span>Outputs</span>
                     </li>
+                    <li class="sidebar-item sidebar-link" onclick="renderer.showScreen('Faders')"
+                        data-links-to="Faders">
+                        <span><i data-feather="sliders"></i></span>
+                        <span>Faders</span>
+                    </li>
                     <li class="sidebar-item sidebar-link" onclick="renderer.showScreen('Groups')"
                         data-links-to="Groups">
                         <span><i data-feather="archive"></i></span>
                         <span>Groups</span>
+                    </li>
+                    <li class="sidebar-item sidebar-link" onclick="renderer.showScreen('Cues')"
+                        data-links-to="Cues">
+                        <span><i data-feather="play"></i></span>
+                        <span>Cues</span>
                     </li>
                     <li class="sidebar-item sidebar-link" onclick="renderer.showScreen('Playbacks')"
                         data-links-to="Playbacks">
@@ -69,13 +77,11 @@
                         <span><i class="fa fa-palette"></i></span>
                         <span>Colour</span>
                     </li>
-                    <li class="sidebar-item sidebar-link" onclick="renderer.showScreen('Shape')"
-                        data-links-to="Shape">
+                    <li class="sidebar-item sidebar-link" onclick="renderer.showScreen('Shape')" data-links-to="Shape">
                         <span><i class="fa-brands fa-first-order-alt"></i></span>
                         <span>Shape</span>
                     </li>
-                    <li class="sidebar-item sidebar-link" onclick="renderer.showScreen('Beam')"
-                        data-links-to="Beam">
+                    <li class="sidebar-item sidebar-link" onclick="renderer.showScreen('Beam')" data-links-to="Beam">
                         <span><i data-feather="aperture"></i></span>
                         <span>Beam</span>
                     </li>
@@ -109,12 +115,19 @@
                 <div class="screen" id="Outputs">
                     <div class="title">Outputs</div>
                     <div id="outputOptionsContainer" class="container-row">
-                        <select name="outputType" id="OutputTypeSelect">
-                            <option value="raw">Raw</option>
+                        <select name="outputType" id="outputTypeSelect" onchange="renderer.outputSelectUpdate()">
                             <option value="channels">Channels</option>
+                            <option value="raw">Raw</option>
                         </select>
                     </div>
-                    <div id="rawOutputContainer" class="scroll-enabled"></div>
+                    <div id="outputContainer" class="scroll-enabled">
+                        <div id="rawOutputContainer" class="outputContainer"></div>
+                        <div id="channelOutputContainer" class="outputContainer"></div>
+                    </div>
+                </div>
+
+                <div class="screen" id="Faders">
+                    <div class="title">Faders</div>
                 </div>
 
                 <div class="screen is-cmd-token" id="Patch">
@@ -163,6 +176,18 @@
 
                 <div class="screen is-cmd-token" id="Groups">
                     <div class="title">Groups</div>
+
+                    <div id="groupsContainer" class=""scroll-enabled>
+                        
+                    </div>
+                </div>
+
+                <div class="screen is-cmd-token" id="Cues">
+                    <div class="title">Cues</div>
+
+                    <div id="cuesContainer" class=""scroll-enabled>
+                        
+                    </div>
                 </div>
 
                 <div class="screen is-cmd-token" id="Playbacks">
@@ -247,11 +272,13 @@
             </div>
         </div>
         <!-- END Patch Fixtures Modal -->
-        <div class="modal fade" id="renameFixturesModal">
+
+        <!-- Rename Fixture Modal -->
+        <div class="modal fade" id="renameFixtureModal">
             <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
                 <div class="modal-content modal-lg" style="max-height: 600px;">
                     <div class="modal-header">
-                        <h4 class="modal-title">Patch Fixtures</h4>
+                        <h4 class="modal-title">Rename Fixture <span id="renameChannelIdInfo"></span></h4>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
@@ -261,14 +288,12 @@
                             <label for="fixtureRenameInput">Fixture Name</label>
                             <input type="text" id="fixtureRenameInput"><br>
 
-                            <input type="submit" value="Patch" id="patchSubmit">
+                            <input type="submit" value="Patch" id="renameSubmit">
                         </form>
                     </div>
                 </div>
             </div>
         </div>
-        <!-- Rename Fixture Modal -->
-
         <!-- END Rename Fixture Modal -->
 
         <!-- WHAT'S NEW MODAL -->

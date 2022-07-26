@@ -1,7 +1,10 @@
 import { SerialPort } from "serialport";
 import { EventEmitter } from "node:events";
 import * as DMX from "../DMX";
-import { Profile, PatchChannel, DmxAddressRange } from "../types/DMXTypes";
+import * as ofl from "openfixturelibrary";
+import { Profile, PatchChannel, DmxAddressRange, FixtureChannel } from "openfixturelibrary/out/types";
+import {ChannelGroup} from "../types/Types";
+import {Cue} from "../DMX/Cue";
 
 export const events = new EventEmitter();
 
@@ -16,51 +19,11 @@ export type USB_Device = {
 	productId: string; // productId: '6001'
 };
 
-const dimmer: Profile = {
-	id: "9d409451-f31d-493b-ba10-36742ad1a9d3",
-	brand: "Generic",
-	name: "Dimmer",
-	channels: [{ name: "Intensity", type: "INTENSITY" }],
-	channelModes: [{ count: 1, channels: [0] }]
-};
-
-const eqFusSpot: Profile = {
-	id: "ftxur-4ebd1622-3063-4c5a-ae0a-9eb866f5f3e4",
-	brand: "Equinox",
-	name: "Fusion Spot MKII",
-	channels: [
-		{
-			name: "Pan",
-			type: "POS-PAN"
-		},
-		{
-			name: "Fine Pan",
-			type: "POS-PAN-FINE"
-		},
-		{
-			name: "Tilt",
-			type: "POS-TILT"
-		},
-		{
-			name: "Fine Tilt",
-			type: "POS-TILT-FINE"
-		}
-	],
-	channelModes: [
-		{
-			count: 1,
-			channels: [0]
-		},
-		{
-			count: 10,
-			channels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-		}
-	]
-};
-
-export const fixtureLibrary: Profile[] = [eqFusSpot, dimmer]; // todo: actually make a file database thingy
+export const fixtureLibrary: Profile[] = ofl.fixtureList; // todo ability to live reload this
 
 const patch: PatchChannel[] = [];
+const groups: Map<number, ChannelGroup> = new Map();
+const cues: Map<number, Cue> = new Map();
 
 export function findInterface(): Promise<USB_Device> {
 	return new Promise<USB_Device>((resolve, reject) => {
@@ -84,34 +47,74 @@ export async function exit() {
 	await universe.close();
 }
 
+export function getChannelsWithMode(profile: Profile, channelMode: number): Array<FixtureChannel> {
+	const channels: FixtureChannel[] = [];
+	profile.channelModes
+		.find((cm) => cm.count == channelMode)
+		.channels.forEach((ch) => {
+			channels.push(profile.channels[ch]);
+		});
+	return channels;
+}
+
+export function getMainChannel(channel: number | PatchChannel) {
+	if (typeof channel == "number") channel = patch.find((pc) => pc.channel == channel);
+
+	const profile = findProfileById(channel.profile);
+
+	const channels = getChannelsWithMode(profile, channel.profileSettings.channelMode);
+	let ch = channels.find((ch) => ch.type == "INTENSITY");
+	if (!ch) ch = channels.find((ch) => ch.type == "GENERIC");
+	return ch;
+}
+
+export function getMainChannelOffset(channel: number | PatchChannel): number {
+	if (typeof channel == "number") channel = patch.find((pc) => pc.channel == channel);
+
+	if (!channel) {
+		console.error("No PatchChannel passed in...");
+		return -1;
+	}
+
+	const profile = findProfileById(channel.profile);
+
+	const channels = getChannelsWithMode(profile, channel.profileSettings.channelMode);
+	let ch = channels.findIndex((ch) => ch.type == "INTENSITY");
+	if (ch < 0) ch = channels.findIndex((ch) => ch.type == "GENERIC");
+	return ch;
+}
+
+export function getAbsoluteMainAddress(channel: number | PatchChannel) {
+	if (typeof channel == "number") channel = patch.find((pc) => pc.channel == channel);
+	const offset = getMainChannelOffset(channel);
+	if (offset < 0) return;
+	return channel.address.initial + offset;
+}
+
+export function updateChannelsSelect(d: {channels: Array<number>, value: number}) {
+	const mainChannels = d.channels.map((ch) => getAbsoluteMainAddress(ch));
+	universe.updateSelect(mainChannels, d.value);
+}
+
 export function getFixtureLibraryBrands(): string[] {
 	const brandSet = new Set();
-	for (let i = 0; i < fixtureLibrary.length; i++) {
-		brandSet.add(fixtureLibrary[i].brand);
+	for (let i = 0; i < ofl.brandList.length; i++) {
+		brandSet.add({name: ofl.brandList[i].name, id: ofl.brandList[i].id});
 	}
 	return Array.from(brandSet) as Array<string>;
 }
 
-export function getFixtureLibraryNames(brand?: string): string[] {
-	let fl;
-	if (brand) {
-		fl = fixtureLibrary.filter((f) => f.brand == brand);
-	} else {
-		fl = fixtureLibrary;
-	}
-	const brandSet = new Set();
-	for (let i = 0; i < fl.length; i++) {
-		brandSet.add(fl[i].name);
-	}
-	return Array.from(brandSet) as Array<string>;
+export function getFixtureLibraryNames(brand?: string): Profile[] {
+	if(!brand) return ofl.fixtureList;
+	return ofl.fixtureList.filter((f) => f.brand == brand);
 }
 
 export function findProfileByName(brand: string, name: string): Profile {
-	return fixtureLibrary.find((p) => p.brand == brand && p.name == name);
+	return fixtureLibrary.find((p: Profile) => p.brand == brand && p.name == name);
 }
 
 export function findProfileById(id: string): Profile {
-	return fixtureLibrary.find((p) => p.id == id);
+	return fixtureLibrary.find((p: Profile) => p.id == id);
 }
 
 export function checkDmxAddressOverlap(r1: DmxAddressRange, r2: DmxAddressRange) {
@@ -161,4 +164,38 @@ export function unpatchFixtures(data: {channels: Array<number>}) {
 
 export function getPatchData(): PatchChannel[] {
 	return patch.sort((a, b) => a.channel - b.channel);
+}
+
+
+export function renameChannel(channel: number, name: string) {
+	const pcI = patch.findIndex((pc) => pc.channel == channel);
+	if(pcI < 0) return;
+	patch[pcI].name = name;
+	events.emit("updatePatch");
+}
+
+export function getGroups(): Map<number, ChannelGroup> {
+	return groups;
+}
+
+export function getGroup(id: number): ChannelGroup | undefined {
+	return groups.has(id) ? groups.get(id) : undefined;
+}
+
+export function setGroup(channelGroup: ChannelGroup) {
+	groups.set(channelGroup.id, channelGroup);
+	events.emit("groupsUpdate"); // todo only send updated group
+}
+
+export function getCues(): Map<number, Cue> {
+	return cues;
+}
+
+export function getCue(id: number): Cue | undefined {
+	return cues.has(id) ? cues.get(id) : undefined;
+}
+
+export function setCue(cue: Cue) {
+	cues.set(cue.id, cue);
+	events.emit("cuesUpdate");
 }

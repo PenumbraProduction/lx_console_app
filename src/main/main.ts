@@ -437,44 +437,39 @@ ipcMain.on("changeSaveLocation", (e) => {
 // DMX Stuffs //
 // ---------- //
 
-DmxManager.universe.on("bufferUpdate", () => {
-	mainWindow.webContents.send("universeBufferUpdate", Array.from(DmxManager.universe.getUniverseBuffer()).slice(1));
-});
-
+DmxManager.universe.on("bufferUpdate", () =>
+	mainWindow.webContents.send("universeBufferUpdate", Array.from(DmxManager.universe.getUniverseBuffer()).slice(1))
+);
 DmxManager.events.on("updatePatch", () => mainWindow.webContents.send("updatePatch", DmxManager.getPatchData()));
+DmxManager.events.on("groupsUpdate", () => mainWindow.webContents.send("groupsUpdate", DmxManager.getGroups()));
+DmxManager.events.on("cuesUpdate", () => mainWindow.webContents.send("cuesUpdate", DmxManager.getCues()));
 
-let testCount = 0;
-ipcMain.on("dmxTest", () => DmxManager.universe.updateAll(testCount++));
+ipcMain.on("getUniverseData", (e) => (e.returnValue = DmxManager.universe.getUniverseBuffer()));
 
-ipcMain.on("updateUniverseIndividual", (e, d) => {
-	console.log(d);
-	DmxManager.universe.update(d[0].channel, d[0].value);
-});
-
-ipcMain.on("updateUniverseEach", (e, d) => {
-	console.log(d);
-	DmxManager.universe.updateEach(d[0]);
-});
-
-ipcMain.on("updateUniverseSelect", (e, d) => {
-	console.log(d);
-	DmxManager.universe.updateSelect(d[0].channels, d[0].value);
-});
+ipcMain.on("updateUniverseIndividual", (e, d) => e.returnValue = DmxManager.universe.update(d[0].channel, d[0].value))
+ipcMain.on("updateUniverseEach", (e, d) => e.returnValue = DmxManager.universe.updateEach(d[0]));
+ipcMain.on("updateUniverseSelect", (e, d) => e.returnValue = DmxManager.universe.updateSelect(d[0].channels, d[0].value));
+ipcMain.on("updateChannelsSelect", (e, d) => e.returnValue = DmxManager.updateChannelsSelect(d[0]));
 
 ipcMain.on(
 	"findProfileByName",
-	(e, data) => (e.returnValue = DmxManager.findProfileByName(data[0].brand, data[0].name))
+	(e, d) => (e.returnValue = DmxManager.findProfileByName(d[0].brand, d[0].name))
 );
-ipcMain.on("findProfileById", (e, data) => (e.returnValue = DmxManager.findProfileById(data[0])));
-
+ipcMain.on("findProfileById", (e, d) => (e.returnValue = DmxManager.findProfileById(d[0])));
 ipcMain.on("getFixtureLibrary", (e) => (e.returnValue = DmxManager.fixtureLibrary));
 ipcMain.on("getFixtureLibraryBrands", (e) => (e.returnValue = DmxManager.getFixtureLibraryBrands()));
-ipcMain.on("getFixtureLibraryNames", (e, data) => (e.returnValue = DmxManager.getFixtureLibraryNames(data[0])));
+ipcMain.on("getFixtureLibraryNames", (e, d) => (e.returnValue = DmxManager.getFixtureLibraryNames(d[0])));
 
-ipcMain.on("patchFixture", (e, data) => (e.returnValue = DmxManager.patchFixture(data[0])));
-ipcMain.on("patchFixtures", (e, data) => (e.returnValue = DmxManager.patchFixtures(data[0])));
-ipcMain.on("unpatchFixtures", (e, data) => (e.returnValue = DmxManager.unpatchFixtures(data[0])));
-
+ipcMain.on("patchFixture", (e, d) => (e.returnValue = DmxManager.patchFixture(d[0])));
+ipcMain.on("patchFixtures", (e, d) => (e.returnValue = DmxManager.patchFixtures(d[0])));
+ipcMain.on("unpatchFixtures", (e, d) => (e.returnValue = DmxManager.unpatchFixtures(d[0])));
 ipcMain.on("getPatchData", (e) => (e.returnValue = DmxManager.getPatchData()));
+ipcMain.on("renameChannel", (e, d) => (e.returnValue = DmxManager.renameChannel(d[0].channel, d[0].name)));
 
-ipcMain.on("getUniverseData", (e) => (e.returnValue = DmxManager.universe.getUniverseBuffer()));
+ipcMain.on("getGroups", (e) => (e.returnValue = DmxManager.getGroups()));
+ipcMain.on("getGroup", (e, d) => (e.returnValue = DmxManager.getGroup(d[0])));
+ipcMain.on("setGroup", (e, d) => (e.returnValue = DmxManager.setGroup(d[0])));
+
+ipcMain.on("getCues", (e) => (e.returnValue = DmxManager.getCues()));
+ipcMain.on("setCue", (e, d) => (e.returnValue = DmxManager.setCue(d[0])));
+ipcMain.on("getCue", (e, d) => (e.returnValue = DmxManager.getCue(d[0])));

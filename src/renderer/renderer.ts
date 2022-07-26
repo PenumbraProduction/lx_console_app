@@ -1,14 +1,16 @@
+// import { deserialize } from "typescript-json-serializer";
 import { MainAPI } from "../main/preload";
 import validatorEscape from "validator/es/lib/escape"; // jquery text() func does this for you
 import * as feather from "feather-icons";
 import { v4 as GenerateUUID } from "uuid";
 import { Save } from "../common/Save";
 import { UserPrefs } from "../common/UserPrefs";
+
 import * as is from "../common/util/is";
 import * as DMX from "../DMX/util/DMX512";
-// import { deserialize } from "typescript-json-serializer";
-
-import { Profile, PatchChannel } from "../types/DMXTypes";
+import { Profile, PatchChannel } from "openfixturelibrary/out/types";
+import { ChannelGroup, UniverseData } from "../types/Types";
+import {Cue} from "../DMX/Cue";
 
 import "./styles";
 
@@ -38,7 +40,10 @@ export const api: MainAPI = (window as BridgedWindow).mainAPI.api;
 const prefs: UserPrefs = api.getPrefs();
 const save: Save = api.getSave();
 
+let universeBuffer: UniverseData = [];
 export let patch: PatchChannel[] = [];
+export let groups: Map<number, ChannelGroup> = new Map();
+export let cues: Map<number, Cue> = new Map();
 
 const CONTROL_KEYS = {
 	CONTROL: "Control",
@@ -158,28 +163,62 @@ sidebarResizer.addEventListener("mousedown", () => {
 // 	range.insertNode(frag);
 // }
 
-function generateOutputTable() {
+function generateRawOutputTable() {
 	const container = document.createElement("div");
 	container.id = "rawOutput";
+	container.classList.add("outputs");
 	for (let x = 0; x < 512; x++) {
 		const box = document.createElement("div");
 		const ch = document.createElement("span");
 		const val = document.createElement("span");
-		box.id = `output-${x + 1}`;
+		box.id = `raw-output-${x + 1}`;
 		box.classList.add("channel");
 		ch.innerText = (x + 1).toString();
 		val.innerText = "--";
-		val.id = `output-${x + 1}-value`;
+		val.id = `raw-output-${x + 1}-value`;
 		box.appendChild(ch);
 		box.appendChild(val);
 		container.appendChild(box);
 	}
 	$("#rawOutputContainer").empty().append(container);
 }
-generateOutputTable();
+generateRawOutputTable();
+
+export function generateChannelOutputTable() {
+	const container = document.createElement("div");
+	container.id = "channelOutput";
+	container.classList.add("outputs");
+	for (let x = 0; x < patch.length; x++) {
+		const pc = patch[x];
+		const box = document.createElement("div");
+		const ch = document.createElement("span");
+		const val = document.createElement("span");
+		box.id = `channel-output-${pc.channel}`;
+		box.classList.add("channel");
+		ch.innerText = pc.channel.toString();
+		val.innerText = "--";
+		val.id = `channel-output-${pc.channel}-value`;
+		box.appendChild(ch);
+		box.appendChild(val);
+		container.appendChild(box);
+	}
+	$("#channelOutputContainer").empty().append(container);
+}
+generateChannelOutputTable();
+
+export function outputSelectUpdate() {
+	if ((query("#outputTypeSelect").val() as string) == "raw") {
+		$("#channelOutputContainer").hide();
+		$("#rawOutputContainer").show();
+	} else {
+		$("#channelOutputContainer").show();
+		$("#rawOutputContainer").hide();
+	}
+}
+outputSelectUpdate();
 
 export function updateOutputTable(values: Array<number>) {
-	for (let i = 0; i < values.length; i++) query(`#output-${i + 1}-value`).text(values[i] || 0);
+	for (let i = 0; i < values.length; i++) query(`#raw-output-${i + 1}-value`).text(values[i] || 0);
 }
 
 export function errorPopup(message: string, detail: string) {
@@ -197,8 +236,8 @@ export function disableElt(elt: HTMLElement): void {
 }
 
 interface CurrentPatchInfo {
-	fixtureBrand?: string;
-	fixtureName?: string;
+	fixtureBrandId?: string;
+	fixtureId?: string;
 	fixtureProfile?: Profile;
 	fixtureChannelMode?: number;
 	number?: number;
@@ -219,18 +258,29 @@ export function openPatchFixturesModal(): void {
 
 	// populate fixture brand options
 	const lib = api.ipcSendSync("getFixtureLibraryBrands");
-	lib.forEach((brand: string) => {
+	lib.forEach((brand: { id: string; name: string }) => {
 		const elt = document.createElement("option");
-		elt.value = brand;
-		elt.textContent = brand;
+		elt.value = brand.id;
+		elt.textContent = brand.name;
 		query("#fixtureBrandSelect").append(elt);
 	});
+
+	query("#fixtureTypeSelect").empty();
+	disableElt(query("#fixtureTypeSelect")[0]);
+
+	query("#fixtureChannelModeSelect").empty();
+	disableElt(query("#fixtureChannelModeSelect")[0]);
+
+	disableElt(query("#numberOfFixtures")[0]);
+	disableElt(query("#startDmxAddress")[0]);
+	disableElt(query("#dmxAddressOffset")[0]);
+	disableElt(query("#patchSubmit")[0]);
 
 	query("#patchFixturesModal").modal("show");
 }
 
 export function setPatchBrand(): void {
-	currentPatchInfo.fixtureBrand = query("#fixtureBrandSelect").val() as string;
+	currentPatchInfo.fixtureBrandId = query("#fixtureBrandSelect").val() as string;
 
 	query("#fixtureTypeSelect").empty();
 	const dflt = document.createElement("option");
@@ -240,11 +290,11 @@ export function setPatchBrand(): void {
 	query("#fixtureTypeSelect").append(dflt);
 
 	// populate fixtureTypeSelect with options that are from the specified brand
-	const lib = api.ipcSendSync("getFixtureLibraryNames", currentPatchInfo.fixtureBrand);
-	lib.forEach((brand: string) => {
+	const lib = api.ipcSendSync("getFixtureLibraryNames", currentPatchInfo.fixtureBrandId);
+	lib.forEach((p: Profile) => {
 		const elt = document.createElement("option");
-		elt.value = brand;
-		elt.textContent = brand;
+		elt.value = p.id;
+		elt.textContent = p.name;
 		query("#fixtureTypeSelect").append(elt);
 	});
 
@@ -252,11 +302,9 @@ export function setPatchBrand(): void {
 }
 
 export function setPatchType(): void {
-	currentPatchInfo.fixtureName = query("#fixtureTypeSelect").val() as string;
-	currentPatchInfo.fixtureProfile = api.ipcSendSync("findProfileByName", {
-		brand: currentPatchInfo.fixtureBrand,
-		name: currentPatchInfo.fixtureName
-	});
+	currentPatchInfo.fixtureId = query("#fixtureTypeSelect").val() as string;
+	currentPatchInfo.fixtureProfile = api.ipcSendSync("findProfileById", currentPatchInfo.fixtureId);
+	// todo: the brand is now the ID of the brand, needs changing to be able to handle sending the brand ID instead of the brand Name
 
 	// populate channelModes
 	query("#fixtureChannelModeSelect").empty();
@@ -315,11 +363,11 @@ export function setPatchStartChannel(startChannel?: number): void {
 
 export function patchFixtures(): void {
 	// missing data
-	if (typeof currentPatchInfo.fixtureBrand == "undefined" || currentPatchInfo.fixtureBrand == null) {
+	if (typeof currentPatchInfo.fixtureBrandId == "undefined" || currentPatchInfo.fixtureBrandId == null) {
 		query("#patchFixtureModalMessage").text("Missing information 'fixtureBrand'");
 		return;
 	}
-	if (typeof currentPatchInfo.fixtureName == "undefined" || currentPatchInfo.fixtureName == null) {
+	if (typeof currentPatchInfo.fixtureId == "undefined" || currentPatchInfo.fixtureId == null) {
 		query("#patchFixtureModalMessage").text("Missing information 'fixtureName'");
 		return;
 	}
@@ -361,7 +409,7 @@ export function patchFixtures(): void {
 	for (let i = 0; i < currentPatchInfo.number; i++) {
 		const patchChannel: PatchChannel = {
 			channel: currentPatchInfo.startChannel + i,
-			name: currentPatchInfo.fixtureBrand + " " + currentPatchInfo.fixtureName,
+			name: currentPatchInfo.fixtureProfile.name,
 			profile: currentPatchInfo.fixtureProfile.id,
 			profileSettings: {
 				channelMode: currentPatchInfo.fixtureProfile.channelModes[currentPatchInfo.fixtureChannelMode].count
@@ -383,10 +431,29 @@ export function patchFixtures(): void {
 		console.log(message);
 		query("#patchFixtureModalMessage").text(message);
 	} else {
-		refreshPatchList();
 		query("#patchFixturesModal").modal("hide");
 		// currentPatchInfo = {};
 	}
+}
+
+export function generateOpenRenameFixtureModalFunc(channel: number) {
+	return function () {
+		openRenameFixtureModal(channel);
+	};
+}
+
+export function openRenameFixtureModal(channel: number) {
+	query("#fixtureRenameInput").val("");
+	query("#renameChannelIdInfo").text(channel);
+	query("#renameFixtureModal").modal("show");
+}
+
+export function renameFixture() {
+	api.ipcSendSync("renameChannel", {
+		channel: parseInt(query("#renameChannelIdInfo").text()),
+		name: query("#fixtureRenameInput").val()
+	});
+	query("#renameFixtureModal").modal("hide");
 }
 
 export function forceRefreshPatchList(): void {
@@ -414,6 +481,7 @@ export function refreshPatchList(): void {
 		nameSpan.classList.add("patchChannelComponent");
 		nameSpan.classList.add("patchChannel_name");
 		nameSpan.textContent = pc.name;
+		nameSpan.onclick = generateOpenRenameFixtureModalFunc(pc.channel);
 		query("#patchListNameContents").append(nameSpan);
 		// Name
 		const profileSpan = document.createElement("span");
@@ -432,12 +500,48 @@ export function refreshPatchList(): void {
 		dmxRangeSpan.textContent = `${pc.address.initial} > ${pc.address.final}`;
 		query("#patchListDmxContents").append(dmxRangeSpan);
 	});
+
+	generateChannelOutputTable();
 }
 
-// for builtin screens (home, about, editor, etc)
+function generateGroupSelectFunction(selection: Array<number>) {
+	return function (e: PointerEvent) {
+		if (e.shiftKey)
+			return setSelectedChannels(Array.from(new Set(selectedChannels.concat(...selection))) as Array<number>);
+		setSelectedChannels(selection);
+	};
+}
+
+export function forceRefreshGroupsList(): void {
+	groups = api.ipcSendSync("getGroups");
+	refreshGroupsList();
+}
+
+export function refreshGroupsList() {
+	query("#groupsContainer").empty();
+	groups.forEach((group) => {
+		const elt = document.createElement("div");
+		elt.id = `group_${group.id}_select`;
+		elt.classList.add("group");
+		elt.onclick = generateGroupSelectFunction(group.channels);
+		const groupId = document.createElement("div");
+		groupId.id = `group_${group.id}_id`;
+		groupId.classList.add("group_id");
+		groupId.innerText = group.id.toString();
+		const name = document.createElement("div");
+		name.id = `group_${group.id}_name`;
+		name.classList.add("group_name");
+		name.innerText = group.name;
+
+		elt.appendChild(groupId);
+		elt.appendChild(name);
+
+		query("#groupsContainer").append(elt);
+	});
+}
+
 export function showScreen(screenName: string): void {
 	document.querySelectorAll(".sidebar-link").forEach((elt) => elt.classList.remove("active"));
-
 	document.querySelectorAll(`[data-links-to="${screenName}"]`).forEach((elt) => elt.classList.add("active"));
 
 	query(".screen").hide();
@@ -511,17 +615,30 @@ export function parseChannelSelection(tkns: Array<string>, alreadySelectedChanne
 	return Array.from(selectedChannels) as Array<number>;
 }
 
+// todo I feel like these could be in the DMX manager, and use an IPC to setChannels instead of setting DMX
+
+// END todo \\
+
 export function setSelectedChannels(num: Array<number>) {
 	selectedChannels = num;
 
 	query(".channel").removeClass("selected");
 	for (let i = 0; i < num.length; i++) {
-		query(`#output-${num[i]}`).addClass("selected");
+		query(`#channel-output-${num[i]}`).addClass("selected");
 	}
 }
 
 window.addEventListener("keydown", (e) => {
 	if (modalIsOpen) return;
+
+	// ---------------- \\
+	// Add control keys \\
+	// ---------------- \\
+
+	if (Object.values(CONTROL_KEYS).includes(e.key)) {
+		controlKeys.add(e.key);
+		return;
+	}
 
 	// ----------------------------------------------- \\
 	// prevent typing or actions on keyboard shortcuts \\
@@ -534,23 +651,16 @@ window.addEventListener("keydown", (e) => {
 	if (e.key == "d") if (controlKeys.has(CONTROL_KEYS.ALT)) return;
 	if (e.key == "h") if (controlKeys.has(CONTROL_KEYS.ALT)) return;
 
+	if (e.key == "i") if (controlKeys.has(CONTROL_KEYS.CONTROL) && controlKeys.has(CONTROL_KEYS.SHIFT)) return;
+
 	if (e.key == "a") if (controlKeys.has(CONTROL_KEYS.CONTROL)) return e.preventDefault(); // prevent ctrl+a selection
-
-	// ---------------- \\
-	// Add control keys \\
-	// ---------------- \\
-
-	if (Object.values(CONTROL_KEYS).includes(e.key)) {
-		controlKeys.add(e.key);
-		return;
-	}
 
 	//
 
 	if (e.key == "Enter") {
 		pushToken();
-		performCommand();
-		pushCommandInfo();
+		const wasValid = performCommand();
+		if (wasValid) pushCommandInfo();
 		return;
 	}
 
@@ -574,6 +684,7 @@ window.addEventListener("keydown", (e) => {
 		if (e.key == "d") return setSelectedChannels([]);
 		if (e.key == "c") return pushToken("Copy");
 		if (e.key == "n") return pushToken("Name");
+		if(e.key == "i") return pushToken("Include");
 	}
 
 	pushTokenPart(e.key);
@@ -609,50 +720,85 @@ function popToken() {
 	liveCommandUpdate();
 }
 
-// function syntaxCheckCommand() {
-// 	// do syntax checking on command (each keyword expects a thing after it, and sometimes a thing before it)
-// 	// e.g "RECORD DELETE" is invalid, record expects a playback value after it and nothing before it
-// 	// e.g.2 "@ 50" is invalid, "@" expects at least one channel before it
-// 	// returns true if valid, false otherwise
-// 	return true;
-// }
+function performCommand(): boolean {
+	if (!tokens.length) return false;
 
-function performCommand() {
-	if (!tokens.length) return;
-	// if (!syntaxCheckCommand()) {
-	// 	return console.log("Cannot run command, Invalid syntax");
-	// }
-	console.log(`Perform ${tokens.join("|")}`);
-
-	if(tokens[0] == "Delete") {
-		if(tokens[1] == "Patch") {
-			if(!is.isNumber(tokens[2])) api.ipcSend("unpatchFixtures", {channels: selectedChannels});
-			else {
+	if (tokens[0] == "Delete") {
+		if (tokens[1] == "Patch") {
+			if (!is.isNumber(tokens[2])) {
+				api.ipcSend("unpatchFixtures", { channels: selectedChannels });
+				return true;
+			} else {
 				const useChannels = parseChannelSelection(tokens.slice(2));
-				api.ipcSend("unpatchFixtures", {channels: useChannels});
+				api.ipcSend("unpatchFixtures", { channels: useChannels });
+				return true;
 			}
 		}
 	}
 
-	if (is.isNumber(tokens[0])) setSelectedChannels(parseChannelSelection(tokens));
-	else if ((tokens[0] == "-" && is.isNumber(tokens[1])) || (tokens[0] == "+" && is.isNumber(tokens[1])))
+	if (tokens[0] == "Record") {
+		if (tokens[1] == "Patch") {
+			openPatchFixturesModal();
+			return true;
+		}
+		if (tokens[1] == "Groups") {
+			if (!is.isNumber(tokens[2])) return false;
+			const groupNo = parseInt(tokens[2]);
+			api.ipcSendSync("setGroup", {
+				id: groupNo,
+				channels: selectedChannels,
+				name: `Group ${groupNo.toString()}`
+			});
+			return true;
+		}
+		if(tokens[1] == "Cues") {
+			if (!is.isNumber(tokens[2])) return false;
+			const c = new Cue(parseInt(tokens[2]), `Cue ${tokens[2]}`, universeBuffer);
+			api.ipcSendSync("setCue", c);
+			return true;
+		}
+		if(tokens[1] == "Playbacks") {
+			if (!is.isNumber(tokens[2])) return false;
+
+			const nextCueNo = api.ipcSendSync("getNextCueNumber");
+			const c = new Cue(nextCueNo, `Cue ${nextCueNo}`, universeBuffer);
+			api.ipcSendSync("setCue", c);
+
+			if (!is.isNumber(tokens[3])) {
+				//
+			}
+			
+		}
+	}
+
+	// Select and set intensity
+
+	if (is.isNumber(tokens[0])) {
+		setSelectedChannels(parseChannelSelection(tokens));
+	} else if ((tokens[0] == "-" && is.isNumber(tokens[1])) || (tokens[0] == "+" && is.isNumber(tokens[1]))) {
 		setSelectedChannels(parseChannelSelection(tokens, selectedChannels));
+	}
 
 	const atIndex = tokens.indexOf("@");
 	if (atIndex >= 0) {
 		if (tokens.indexOf("@", atIndex + 1) >= 0) {
-			// if multiple @s
-			api.ipcSend("updateUniverseSelect", {
+			// if double @s
+			api.ipcSend("updateChannelsSelect", {
 				channels: selectedChannels,
 				value: 255
 			});
-		} else if (is.isNumber(tokens[atIndex + 1]) && DMX.isWithinRange(parseInt(tokens[atIndex + 1]))) {
-			api.ipcSend("updateUniverseSelect", {
+			return true;
+		}
+		if (is.isNumber(tokens[atIndex + 1]) && DMX.isWithinRange(parseInt(tokens[atIndex + 1]), 0, 100)) {
+			api.ipcSend("updateChannelsSelect", {
 				channels: selectedChannels,
-				value: parseInt(tokens[atIndex + 1])
+				value: DMX.PercentToDMX(parseInt(tokens[atIndex + 1]))
 			});
+			return true;
 		}
 	}
+
+	return false;
 }
 
 function pushCommandInfo() {
@@ -672,8 +818,8 @@ function clearCommandLine() {
 
 function liveCommandUpdate() {
 	if (tokens[tokens.length - 1] == tokens[tokens.length - 2] && tokens[tokens.length - 1] == "@") {
-		performCommand();
-		pushCommandInfo();
+		const wasValid = performCommand();
+		if (wasValid) pushCommandInfo();
 	}
 
 	updateCommandLine();
@@ -708,7 +854,7 @@ function updateCommandHistory() {
 	query("#commandLineHistory").empty();
 	for (const command of cmdHistory) {
 		const c = document.createElement("div");
-		c.textContent = command.join("");
+		c.textContent = command.join(" ");
 		c.classList.add("historicCommand");
 		query("#commandLineHistory").append(c);
 	}
@@ -769,12 +915,24 @@ api.ipcHandle("onClose", () => {
 // DMX stuffs
 
 api.ipcHandle("universeBufferUpdate", (e, d) => {
+	universeBuffer = d;
 	updateOutputTable(d);
 });
 
 api.ipcHandle("updatePatch", (e, d) => {
 	patch = d;
 	refreshPatchList();
+	generateChannelOutputTable();
+});
+
+api.ipcHandle("groupsUpdate", (e, d) => {
+	groups = d;
+	refreshGroupsList();
+});
+
+api.ipcHandle("cuesUpdate", (e, d) => {
+	cues = d;
+	// refreshCuesList();
 });
 
 // #endregion

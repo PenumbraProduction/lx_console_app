@@ -1,4 +1,4 @@
-'use strict'
+"use strict";
 
 module.exports = {
 	useTabs: true,
@@ -9,5 +9,15 @@ module.exports = {
 	trailingComma: "none",
 	bracketSpacing: true,
 	arrowParens: "always",
-	embeddedLanguageFormatting: "auto"
+	embeddedLanguageFormatting: "auto",
+
+	overrides: [
+		{
+			files: ["**.latex.js", "**.latex.ts"],
+			options: {
+				useTabs: false,
+				tabWidth: 2
+			}
+		}
+	]
 };
