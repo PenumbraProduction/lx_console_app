@@ -1,6 +1,6 @@
-import "../../css/splash.scss";
+import "../../../css/splash.scss";
 
-import { SplashAPI } from "../main/splash_preload";
+import { SplashAPI } from "../../main/splash_preload";
 
 type BridgedWindow = Window &
 	typeof globalThis & {
@@ -38,7 +38,13 @@ document.addEventListener(
 	false
 );
 
-
-api.ipcHandle("updateLoadingJob", (e,data) => {
-    document.querySelector(".currentJob").textContent = data;
+api.ipcHandle("updateLoadingJob", (e, data, type) => {
+	if (type == "error") {
+		document.documentElement.style.setProperty("--bg-color", "#351b1b");
+		document.documentElement.style.setProperty("--star-color", "rgb(255, 95, 95)");
+	} else {
+		document.documentElement.style.setProperty("--bg-color", "#1b2735");
+		document.documentElement.style.setProperty("--star-color", "rgba(95, 145, 255, 1)");
+	}
+	document.querySelector(".currentJob").textContent = data;
 });

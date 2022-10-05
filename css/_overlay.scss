@@ -1,0 +1,66 @@
+.overlay {
+    z-index: -1;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+}
+
+#dragSidesOverlayContainer {
+    display: none;
+    z-index: 99998;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+
+    &.shown {
+        display: block;
+    }
+}
+
+#dragSidesContainer {
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: center;
+
+    .dragSection {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+        width: 50%;
+
+        font-size: 3vw;
+        text-align: center;
+
+        &::after {
+            content: "";
+            position: absolute;
+            width: 40%;
+            padding-left: 2vw;
+            padding-right: 2vw;
+            padding-top: 6vh;
+            padding-bottom: 6vh;
+            background-color: var(--accent-bg);
+            opacity: 0.3;
+            border-radius: 15px;
+        }
+
+        &.hovered {
+            background-color: rgba(0, 0, 0, 0.5);
+
+            &::after {
+                opacity: 0.5;
+            }
+        }
+    }
+}

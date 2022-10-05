@@ -1,0 +1,17 @@
+<button onclick="submitData()">Click Me</button>
+
+<button onclick="windowInstruction('close')">Close</button>
+
+<script>
+    const promptId = document.location.hash.replace("#", "");
+    const options = promptApi.api.ipcSendSync("prompt-get-options:" + promptId);
+
+    function submitData() {
+        promptApi.api.ipcSend("prompt-post-data:" + promptId, { some: "Data" });
+    }
+
+    function windowInstruction(instruction) {
+        promptApi.api.ipcSend("prompt-window-control:" + promptId, instruction);
+    }
+
+</script>

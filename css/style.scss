@@ -6,10 +6,13 @@
 @import "./tiles";
 @import "./notification";
 @import "./modal";
+@import "./overlay";
 
 @import "./Outputs";
 @import "./Patch";
 @import "./Groups";
+@import "./Attributes";
+@import "./Statusbar";
 
 @font-face {
     font-family: "Fira-Mono";
@@ -39,6 +42,8 @@
 
     --commandLine-height: 4vh;
     --commandLine-margin: 1vh;
+
+    --statusbar-height: 30px;
 }
 
 body {

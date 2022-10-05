@@ -14,7 +14,7 @@
 }
 
 #main {
-    height: 100%;
+    height: calc(100% - var(--statusbar-height));
     width: 100%;
     display: flex;
     flex-direction: row;
@@ -139,7 +139,7 @@
     position: fixed;
     width: calc(100% - var(--sidebar-width));
     height: var(--commandLine-height);
-    bottom: 0;
+    bottom: var(--statusbar-height);
     right: 0;
     font-size: calc(var(--commandLine-height) - 10px);
     line-height: calc(var(--commandLine-height) - 10px);
@@ -183,7 +183,7 @@
         width: 100%;
     }
 
-    bottom: var(--commandLine-height);
+    bottom: calc(var(--commandLine-height), + var(--statusbar-height));
     right: 0;
     font-size: calc(var(--commandLine-height) - 10px);
     line-height: calc(var(--commandLine-height) - 10px);

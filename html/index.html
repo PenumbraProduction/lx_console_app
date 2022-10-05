@@ -13,12 +13,6 @@
         <script src="../node_modules/jquery/dist/jquery.min.js"></script>
         <script src="../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 
-        <!-- HIGHLIHTJS STYLES -->
-        <link id="codeStyleLink" rel="stylesheet" href="../node_modules/highlight.js/styles/atom-one-dark.css">
-        <!-- HIGHLIHTJS STYLES -->
-        <link id="codeOverlayLink" rel="stylesheet">
-
-        <link id="customStylesheetLink" rel="stylesheet">
         <script src="../assets/vendor/fontawesome-web/js/all.min.js"></script>
     </head>
 
@@ -26,69 +20,84 @@
         <div id="main">
             <div id="sidebar">
                 <div id="sidebar-main" class="sidebar-section">
-                    <li class="sidebar-item sidebar-link" onclick="renderer.showScreen('Home')" data-links-to="Home">
+                    <li class="sidebar-item sidebar-link" data-click-action="page" data-links-to="Home">
                         <span><i data-feather="home"></i></span>
                         <span>Home</span>
                     </li>
-                    <li class="sidebar-item sidebar-link" onclick="renderer.showScreen('Help')" data-links-to="Help">
+                    <li class="sidebar-item sidebar-link" data-click-action="page" data-links-to="Help">
                         <span><i data-feather="help-circle"></i></span>
                         <span>Help</span>
                     </li>
-                    <li class="sidebar-item sidebar-link" onclick="renderer.showScreen('Settings')"
-                        data-links-to="Settings">
+                    <li class="sidebar-item sidebar-link" data-click-action="page" data-links-to="Settings">
                         <span><i data-feather="settings"></i></span>
                         <span>Settings</span>
+                    </li>
+                    <li class="sidebar-item sidebar-link" data-click-action="page" data-links-to="Clock">
+                        <span><i data-feather="clock"></i></span>
+                        <span>Clock and Timer</span>
                     </li>
                 </div>
                 <!-- Section -->
                 <div id="sidebar-windows" class="sidebar-section">
-                    <li class="sidebar-item sidebar-link" onclick="renderer.showScreen('Patch')" data-links-to="Patch">
+                    <li class="sidebar-item sidebar-link" data-click-action="page" data-links-to="Patch"
+                        data-cmd-token="Patch">
                         <span><i data-feather="pocket"></i></span>
                         <span>Patch</span>
                     </li>
-                    <li class="sidebar-item sidebar-link" onclick="renderer.showScreen('Outputs')"
-                        data-links-to="Outputs">
+                    <li class="sidebar-item sidebar-link" data-click-action="page" data-links-to="Outputs"
+                        data-cmd-token="Outputs">
                         <span><i data-feather="upload"></i></span>
                         <span>Outputs</span>
                     </li>
-                    <li class="sidebar-item sidebar-link" onclick="renderer.showScreen('Faders')"
-                        data-links-to="Faders">
+                    <!-- <li class="sidebar-item sidebar-link" data-click-action="page" data-links-to="Faders" data-cmd-token="Faders">
                         <span><i data-feather="sliders"></i></span>
                         <span>Faders</span>
-                    </li>
-                    <li class="sidebar-item sidebar-link" onclick="renderer.showScreen('Groups')"
-                        data-links-to="Groups">
+                    </li> -->
+                    <li class="sidebar-item sidebar-link" data-click-action="page" data-links-to="Groups"
+                        data-cmd-token="Groups">
                         <span><i data-feather="archive"></i></span>
                         <span>Groups</span>
                     </li>
-                    <li class="sidebar-item sidebar-link" onclick="renderer.showScreen('Cues')"
-                        data-links-to="Cues">
+                    <li class="sidebar-item sidebar-link" data-click-action="page" data-links-to="Cues"
+                        data-cmd-token="Cues">
                         <span><i data-feather="play"></i></span>
                         <span>Cues</span>
                     </li>
-                    <li class="sidebar-item sidebar-link" onclick="renderer.showScreen('Playbacks')"
-                        data-links-to="Playbacks">
-                        <span><i data-feather="play"></i></span>
+                    <li class="sidebar-item sidebar-link" data-click-action="page" data-links-to="Playbacks"
+                        data-cmd-token="Playbacks">
+                        <span><i data-feather="sliders"></i></span>
                         <span>Playbacks</span>
                     </li>
 
-                    <li class="sidebar-item sidebar-link" onclick="renderer.showScreen('Colour')"
-                        data-links-to="Colour">
+                    <li class="sidebar-item sidebar-link" data-click-action="page" data-links-to="Colour"
+                        data-cmd-token="Colour">
                         <span><i class="fa fa-palette"></i></span>
                         <span>Colour</span>
                     </li>
-                    <li class="sidebar-item sidebar-link" onclick="renderer.showScreen('Shape')" data-links-to="Shape">
+                    <li class="sidebar-item sidebar-link" data-click-action="page" data-links-to="Shape"
+                        data-cmd-token="Shape">
                         <span><i class="fa-brands fa-first-order-alt"></i></span>
                         <span>Shape</span>
                     </li>
-                    <li class="sidebar-item sidebar-link" onclick="renderer.showScreen('Beam')" data-links-to="Beam">
+                    <li class="sidebar-item sidebar-link" data-click-action="page" data-links-to="Beam"
+                        data-cmd-token="Beam">
                         <span><i data-feather="aperture"></i></span>
                         <span>Beam</span>
                     </li>
-                    <li class="sidebar-item sidebar-link" onclick="renderer.showScreen('Position')"
-                        data-links-to="Position">
+                    <li class="sidebar-item sidebar-link" data-click-action="page" data-links-to="Position"
+                        data-cmd-token="Position">
                         <span><i class="fa fa-arrows-up-down-left-right"></i></span>
                         <span>Position</span>
+                    </li>
+                    <li class="sidebar-item sidebar-link" data-click-action="page" data-links-to="Function"
+                        data-cmd-token="Function">
+                        <span><i data-feather="activity"></i></span>
+                        <span>Function</span>
+                    </li>
+                    <li class="sidebar-item sidebar-link" data-click-action="page" data-links-to="Uncategorised"
+                        data-cmd-token="Uncategorised">
+                        <span><i data-feather="columns"></i></span>
+                        <span>Uncategorised</span>
                     </li>
                 </div>
             </div>
@@ -102,14 +111,26 @@
 
                 <div class="screen" id="Help">
                     <div class="title">Help</div>
+
+                    <div class="container-content">
+                        <div id="helpMessage"></div>
+                    </div>
                 </div>
 
                 <div class="screen" id="Settings">
                     <div class="title">Settings</div>
 
                     <div class="container-content">
-
+                        <p>Accent Color</p>
+                        <input type="color" id="settingsAccentBgColor">
+                        <p>Main Color</p>
+                        <input type="color" id="settingsMainBgColor">
                     </div>
+                </div>
+
+                <div class="screen" id="Clock">
+                    <div class="title">Clock and Timer</div>
+
                 </div>
 
                 <div class="screen" id="Outputs">
@@ -133,7 +154,7 @@
                 <div class="screen is-cmd-token" id="Patch">
                     <div class="title">Patch</div>
                     <div class="container-row">
-                        <button class="button w-15" onclick="renderer.openPatchFixturesModal()">Add Fixtures</button>
+                        <button class="button w-15" onclick="renderer.openPatchFixturesPrompt()">Add Fixtures</button>
                         <button class="button w-5" onclick="renderer.forceRefreshPatchList()"><i
                                data-feather="refresh-cw"></i></button>
                     </div>
@@ -177,16 +198,16 @@
                 <div class="screen is-cmd-token" id="Groups">
                     <div class="title">Groups</div>
 
-                    <div id="groupsContainer" class=""scroll-enabled>
-                        
+                    <div id="groupsContainer" class="scroll-enabled">
+
                     </div>
                 </div>
 
                 <div class="screen is-cmd-token" id="Cues">
                     <div class="title">Cues</div>
 
-                    <div id="cuesContainer" class=""scroll-enabled>
-                        
+                    <div id="cuesContainer" class="scroll-enabled">
+
                     </div>
                 </div>
 
@@ -196,18 +217,131 @@
 
                 <div class="screen is-cmd-token" id="Colour">
                     <div class="title">Colour</div>
+
+                    <div class="container-row attributeSelectContainer">
+                        <button class="button w-2 attribute-select-btn attribute-select-controls-btn"
+                                onclick="renderer.attributeSelectUpdate(0)">Attributes</button>
+                        <button class="button w-2 attribute-select-btn attribute-select-palettes-btn"
+                                onclick="renderer.attributeSelectUpdate(1)">Palettes</button>
+                    </div>
+
+                    <input type="color" oninput="console.log(renderer.getColor()(this.value))"
+                           style="width:100%;height: 4vh;" name="" id="">
+
+                    <div class="attributeAllContainer scroll-enabled">
+                        <div id="colourControlsContainer" class="attribute-controls-container scroll-enabled">
+                        </div>
+                        <div id="colourPalettesContainer" class="attribute-palettes-container scroll-enabled">
+                        </div>
+                    </div>
                 </div>
 
                 <div class="screen is-cmd-token" id="Shape">
                     <div class="title">Shape</div>
+
+                    <div class="container-row attributeSelectContainer">
+                        <button class="button w-2 attribute-select-btn attribute-select-controls-btn"
+                                onclick="renderer.attributeSelectUpdate(0)">Attributes</button>
+                        <button class="button w-2 attribute-select-btn attribute-select-palettes-btn"
+                                onclick="renderer.attributeSelectUpdate(1)">Palettes</button>
+                    </div>
+
+                    <div class="attributeAllContainer scroll-enabled">
+                        <div id="shapeControlsContainer" class="attribute-controls-container scroll-enabled">
+
+                        </div>
+
+                        <div id="shapePalettesContainer" class="attribute-palettes-container scroll-enabled">
+
+                        </div>
+                    </div>
                 </div>
 
                 <div class="screen is-cmd-token" id="Beam">
                     <div class="title">Beam</div>
+
+                    <div class="container-row attributeSelectContainer">
+                        <button class="button w-2 attribute-select-btn attribute-select-controls-btn"
+                                onclick="renderer.attributeSelectUpdate(0)">Attributes</button>
+                        <button class="button w-2 attribute-select-btn attribute-select-palettes-btn"
+                                onclick="renderer.attributeSelectUpdate(1)">Palettes</button>
+                    </div>
+
+                    <div class="attributeAllContainer scroll-enabled">
+                        <div id="beamControlsContainer" class="attribute-controls-container scroll-enabled">
+
+                        </div>
+
+                        <div id="beamPalettesContainer" class="attribute-palettes-container scroll-enabled">
+
+                        </div>
+                    </div>
+
                 </div>
 
                 <div class="screen is-cmd-token" id="Position">
                     <div class="title">Position</div>
+
+                    <div class="container-row attributeSelectContainer">
+                        <button class="button w-2 attribute-select-btn attribute-select-controls-btn"
+                                onclick="renderer.attributeSelectUpdate(0)">Attributes</button>
+                        <button class="button w-2 attribute-select-btn attribute-select-palettes-btn"
+                                onclick="renderer.attributeSelectUpdate(1)">Palettes</button>
+                    </div>
+
+                    <div id="panTiltGridContainer"></div>
+
+                    <div class="attributeAllContainer scroll-enabled">
+                        <div id="positionControlsContainer" class="attribute-controls-container scroll-enabled">
+
+                        </div>
+
+                        <div id="positionPalettesContainer" class="attribute-palettes-container scroll-enabled">
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="screen is-cmd-token" id="Function">
+                    <div class="title">Function</div>
+
+                    <div class="container-row attributeSelectContainer">
+                        <button class="button w-2 attribute-select-btn attribute-select-controls-btn"
+                                onclick="renderer.attributeSelectUpdate(0)">Attributes</button>
+                        <button class="button w-2 attribute-select-btn attribute-select-palettes-btn"
+                                onclick="renderer.attributeSelectUpdate(1)">Palettes</button>
+                    </div>
+
+                    <div class="attributeAllContainer scroll-enabled">
+                        <div id="functionControlsContainer" class="attribute-controls-container scroll-enabled">
+
+                        </div>
+
+                        <div id="functionPalettesContainer" class="attribute-palettes-container scroll-enabled">
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="screen is-cmd-token" id="Uncategorised">
+                    <div class="title">Uncategorised</div>
+
+                    <div class="container-row attributeSelectContainer">
+                        <button class="button w-2 attribute-select-btn attribute-select-controls-btn"
+                                onclick="renderer.attributeSelectUpdate(0)">Attributes</button>
+                        <button class="button w-2 attribute-select-btn attribute-select-palettes-btn"
+                                onclick="renderer.attributeSelectUpdate(1)">Palettes</button>
+                    </div>
+
+                    <div class="attributeAllContainer scroll-enabled">
+                        <div id="unknownControlsContainer" class="attribute-controls-container scroll-enabled">
+
+                        </div>
+
+                        <div id="unknownPalettesContainer" class="attribute-palettes-container scroll-enabled">
+
+                        </div>
+                    </div>
                 </div>
 
             </div>
@@ -224,120 +358,73 @@
 
         <div id="notificationContainer"></div>
 
-        <!-- Patch Fixtures Modal -->
-        <div class="modal fade" id="patchFixturesModal">
-            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-                <div class="modal-content modal-lg" style="max-height: 600px;">
-                    <div class="modal-header">
-                        <h4 class="modal-title">Patch Fixtures</h4>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
+        <div id="statusBar">
+            <div class="statusbar-item" id="dmxInterfaceStatus">
+                <div class="statusbar-item-content">
+                    <div class="feather-container"><i data-feather="disc"></i></div>
+                    DMX Interface
+                </div>
+                <div class="statusbar-item-dropdown-content">
+                    <div class="statusbar-item-dropdown-item" onclick="renderer.api.ipcSend('serialportClose')">
+                        <span class="feather-container">
+                            <i data-feather="x-circle"></i>
+                        </span>Close
                     </div>
-                    <div class="modal-body">
-                        <div id="patchFixtureModalMessage" class="modal-message bad"></div>
-                        <form onsubmit="renderer.patchFixtures()">
-                            <label for="fixtureBrandSelect">Select Brand</label>
-                            <select name="fixture-brand" id="fixtureBrandSelect"
-                                    onchange="renderer.setPatchBrand()"></select><br>
-
-                            <label for="fixtureTypeSelect">Select Fixture</label>
-                            <select name="fixture-type" id="fixtureTypeSelect" onchange="renderer.setPatchType()"
-                                    class="disabled" disabled></select><br>
-
-                            <label for="fixtureChannelModeSelect">Channel Mode</label>
-                            <select name="fixture-type" id="fixtureChannelModeSelect"
-                                    onchange="renderer.setPatchChannelMode()" class="disabled" disabled></select><br>
-
-                            <label for="numberOfFixtures">Number of Fixtures</label>
-                            <input type="number" min=1 name="numberOfFixtures" id="numberOfFixtures"
-                                   onchange="renderer.setPatchNumber()" class="disabled" disabled><br>
-
-                            <label for="startDmxAddress">Starting DMX Address</label>
-                            <input type="number" min=1 max=512 name="startDmxAddress" id="startDmxAddress"
-                                   onchange="renderer.setPatchDmxInitial()" class="disabled" disabled><br>
-
-                            <label for="dmxAddressOffset">DMX Offset</label>
-                            <input type="number" min=1 max=512 name="dmxAddressOffset" id="dmxAddressOffset"
-                                   onchange="renderer.setPatchDmxOffset()" class="disabled" disabled><br>
-
-                            <label for="startChannel">Starting Channel</label>
-                            <input type="number" min=1 name="startChannel" id="startChannel"
-                                   onchange="renderer.setPatchStartChannel()"><br>
-
-                            <input type="submit" value="Patch" id="patchSubmit" class="disabled" disabled>
-                        </form>
+                    <div class="statusbar-item-dropdown-item" onclick="renderer.api.ipcSend('retrySerialportInit')">
+                        <span class="feather-container">
+                            <i data-feather="play-circle"></i>
+                        </span>Open
+                    </div>
+                    <div class="statusbar-item-dropdown-item" onclick="renderer.attentionRead('dmxInterfaceStatus')">
+                        <span class="feather-container">
+                            <i data-feather="check-circle"></i>
+                        </span>Ok
+                    </div>
+                </div>
+            </div>
+            <div class="statusbar-item" id="profileLibraryStatus">
+                <div class="statusbar-item-content">
+                    <div class="feather-container"><i data-feather="pocket"></i></div>Profile Library
+                </div>
+                <div class="statusbar-item-dropdown-content">
+                    <div class="statusbar-item-dropdown-item" onclick="renderer.api.ipcSend('updateProfileLibrary')">
+                        <span class="feather-container">
+                            <i data-feather="download-cloud"></i>
+                        </span>
+                        Update
                     </div>
                 </div>
             </div>
         </div>
-        <!-- END Patch Fixtures Modal -->
 
-        <!-- Rename Fixture Modal -->
-        <div class="modal fade" id="renameFixtureModal">
-            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-                <div class="modal-content modal-lg" style="max-height: 600px;">
-                    <div class="modal-header">
-                        <h4 class="modal-title">Rename Fixture <span id="renameChannelIdInfo"></span></h4>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <form onsubmit="renderer.renameFixture()">
-                            <label for="fixtureRenameInput">Fixture Name</label>
-                            <input type="text" id="fixtureRenameInput"><br>
-
-                            <input type="submit" value="Patch" id="renameSubmit">
-                        </form>
-                    </div>
-                </div>
+        <div class="context-menu" id="dmxInterfaceStatusContext">
+            <div class="context-menu-section">
+                <span class="context-menu-item">
+                    <span class="feather-container">
+                        <i data-feather="play-circle"></i>
+                    </span>
+                    Open
+                </span>
+                <span class="context-menu-item">
+                    <span class="feather-container">
+                        <i data-feather="check-circle"></i>
+                    </span>
+                    Message Read
+                </span>
             </div>
         </div>
-        <!-- END Rename Fixture Modal -->
 
-        <!-- WHAT'S NEW MODAL -->
-        <div class="modal fade" id="whatsNewModal" tabindex="-1">
-            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-                <div class="modal-content modal-lg" style="max-height: 600px;">
-                    <div class="modal-header">
-                        <!-- VERSION CHANGE NOTICE -->
-                        <h4 class="modal-title" id="whatsNewModalTitle">What's new - Version 1.0.0</h4>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <h5>Changelog</h5>
-                    </div>
-                </div>
+        <!-- File Drag Overlay -->
+        <div class="overlay" id="fileDragOverlay">
+
+        </div>
+        <div id="dragSidesOverlayContainer">
+            <div id="dragSidesContainer">
+                <div class="dragSection" id="dragSection0">Show File</div>
+                <div class="dragSection" id="dragSection1">Fixture Profile</div>
             </div>
         </div>
-        <!-- WHAT'S NEW MODAL -->
-
-        <!-- NEW USER POPUP -->
-        <div class="modal fade unselectable" id="firstUseModal" tabindex="-1" role="dialog" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered" role="document">
-                <div class="modal-content shadow-lg">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Welcome</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        It looks like this is the first time you're using LX Console.<br><br>
-                        Click Continue if you would like to see a short guide about how to use LX Console.
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="mybtn" data-dismiss="modal">No thanks</button>
-                        <button type="button" class="mybtn-primary" data-dismiss="modal"
-                                onclick="console.log('TODO: Implement Help thingy');">Continue</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- NEW USER POPUP -->
+        <!-- END File Drag Overlay -->
 
 
         <script src="../out/renderer.js"></script>

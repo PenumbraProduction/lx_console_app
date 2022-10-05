@@ -12,11 +12,11 @@ const api: SplashAPI = {
 	},
 
 	ipcSend: (channel: string, ...args: any[]): void => {
-		ipcRenderer.send(channel, args);
+		ipcRenderer.send(channel, ...args);
 	},
 
 	ipcSendSync: (channel: string, ...args: any[]): any => {
-		return ipcRenderer.sendSync(channel, args);
+		return ipcRenderer.sendSync(channel, ...args);
 	}
 };
 

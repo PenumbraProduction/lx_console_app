@@ -1,0 +1,2708 @@
+{
+    "dataType": "Map",
+    "value": [
+        ["BEAM", {
+            "dataType": "Map",
+            "value": [
+                ["fxtr-7b5c1360-2765-4e51-b9ad-9221d85feea1-0", {
+                    "channelData": {
+                        "channel": 1,
+                        "dmxAddressRange": {
+                            "initial": 1,
+                            "final": 13
+                        },
+                        "name": "Gesture Spot 300",
+                        "profile": {
+                            "id": "fxtr-7b5c1360-2765-4e51-b9ad-9221d85feea1",
+                            "brand": "brnd-edaa91eb-cded-4825-9c3f-fe919cb641b7",
+                            "name": "Gesture Spot 300",
+                            "productPage": "https://www.marqlighting.com/products/view/gesture-spot-300",
+                            "tags": ["MOVER", "SPOT", "COLOUR-SCROLLER", "GOBO-SCROLLER", "PRISM"],
+                            "channels": [{
+                                "name": "Pan",
+                                "type": "POS-PAN",
+                                "range": {
+                                    "unit": "ANGLE",
+                                    "initial": 0,
+                                    "final": 540
+                                },
+                                "addressOffset": 0
+                            }, {
+                                "name": "Fine Pan",
+                                "type": "POS-PAN-FINE",
+                                "range": {
+                                    "unit": "PERCENT",
+                                    "initial": 0,
+                                    "final": 100
+                                },
+                                "addressOffset": 1
+                            }, {
+                                "name": "Tilt",
+                                "type": "POS-TILT",
+                                "range": {
+                                    "unit": "ANGLE",
+                                    "initial": 0,
+                                    "final": 270
+                                },
+                                "addressOffset": 2
+                            }, {
+                                "name": "Fine Tilt",
+                                "type": "POS-TILT-FINE",
+                                "range": {
+                                    "unit": "PERCENT",
+                                    "initial": 0,
+                                    "final": 100
+                                },
+                                "addressOffset": 3
+                            }, {
+                                "name": "Pan/Tilt Speed",
+                                "type": "FUNCTION",
+                                "range": {
+                                    "unit": "MAGNITUDE",
+                                    "initial": 1,
+                                    "final": 0
+                                },
+                                "addressOffset": 4
+                            }, {
+                                "name": "Dimmer",
+                                "type": "INTENSITY",
+                                "range": {
+                                    "unit": "MAGNITUDE",
+                                    "initial": 0,
+                                    "final": 1
+                                },
+                                "addressOffset": 5
+                            }, {
+                                "name": "Shutter",
+                                "type": "SHUTTER",
+                                "bounds": [{
+                                    "name": "Close",
+                                    "initial": 0,
+                                    "final": 3
+                                }, {
+                                    "name": "Open",
+                                    "initial": 4,
+                                    "final": 7
+                                }, {
+                                    "name": "Strobe Slow->Fast",
+                                    "initial": 8,
+                                    "final": 76,
+                                    "range": {
+                                        "unit": "MAGNITUDE",
+                                        "initial": 0,
+                                        "final": 1
+                                    }
+                                }, {
+                                    "name": "Pulse Slow->Fast",
+                                    "initial": 77,
+                                    "final": 145,
+                                    "range": {
+                                        "unit": "MAGNITUDE",
+                                        "initial": 0,
+                                        "final": 1
+                                    }
+                                }, {
+                                    "name": "Random Strobe Slow->Fast",
+                                    "initial": 146,
+                                    "final": 215,
+                                    "range": {
+                                        "unit": "MAGNITUDE",
+                                        "initial": 0,
+                                        "final": 1
+                                    }
+                                }, {
+                                    "name": "Open",
+                                    "initial": 216,
+                                    "final": 255
+                                }],
+                                "addressOffset": 6
+                            }, {
+                                "name": "Colour Wheel",
+                                "type": "COLOUR-WHEEL",
+                                "bounds": [{
+                                    "name": "White",
+                                    "initial": 0,
+                                    "final": 6
+                                }, {
+                                    "name": "Red",
+                                    "initial": 7,
+                                    "final": 13
+                                }, {
+                                    "name": "Orange",
+                                    "initial": 14,
+                                    "final": 20
+                                }, {
+                                    "name": "Green",
+                                    "initial": 21,
+                                    "final": 27
+                                }, {
+                                    "name": "Light Blue",
+                                    "initial": 28,
+                                    "final": 34
+                                }, {
+                                    "name": "Purple",
+                                    "initial": 35,
+                                    "final": 41
+                                }, {
+                                    "name": "Yellow",
+                                    "initial": 42,
+                                    "final": 48
+                                }, {
+                                    "name": "Blue",
+                                    "initial": 49,
+                                    "final": 55
+                                }, {
+                                    "name": "Pink",
+                                    "initial": 56,
+                                    "final": 63
+                                }, {
+                                    "name": "colour indexing",
+                                    "initial": 64,
+                                    "final": 127
+                                }, {
+                                    "name": "Clockwise Fast->Slow",
+                                    "initial": 128,
+                                    "final": 189,
+                                    "range": {
+                                        "unit": "MAGNITUDE",
+                                        "initial": 1,
+                                        "final": 0
+                                    }
+                                }, {
+                                    "name": "Stop",
+                                    "initial": 190,
+                                    "final": 193
+                                }, {
+                                    "name": "Counterclockwise Slow->Fast",
+                                    "initial": 194,
+                                    "final": 255,
+                                    "range": {
+                                        "unit": "MAGNITUDE",
+                                        "initial": 0,
+                                        "final": 1
+                                    }
+                                }],
+                                "addressOffset": 7
+                            }, {
+                                "name": "Gobo",
+                                "type": "GOBO-WHEEL",
+                                "bounds": [{
+                                    "name": "Open/white",
+                                    "initial": 0,
+                                    "final": 7
+                                }, {
+                                    "name": "Gobo 1",
+                                    "initial": 8,
+                                    "final": 15
+                                }, {
+                                    "name": "Gobo 2",
+                                    "initial": 16,
+                                    "final": 23
+                                }, {
+                                    "name": "Gobo 3",
+                                    "initial": 24,
+                                    "final": 31
+                                }, {
+                                    "name": "Gobo 4",
+                                    "initial": 32,
+                                    "final": 39
+                                }, {
+                                    "name": "Gobo 5",
+                                    "initial": 40,
+                                    "final": 47
+                                }, {
+                                    "name": "Gobo 6",
+                                    "initial": 48,
+                                    "final": 55
+                                }, {
+                                    "name": "Gobo 7",
+                                    "initial": 56,
+                                    "final": 63
+                                }, {
+                                    "name": "Open spot shaking, slow (064) to fast (071)",
+                                    "initial": 64,
+                                    "final": 71
+                                }, {
+                                    "name": "Gobo 1 shaking, slow (072) to fast (079)",
+                                    "initial": 72,
+                                    "final": 79
+                                }, {
+                                    "name": "Gobo 2 shaking, slow (080) to fast (087)",
+                                    "initial": 80,
+                                    "final": 87
+                                }, {
+                                    "name": "Gobo 3 shaking, slow (088) to fast (095)",
+                                    "initial": 88,
+                                    "final": 95
+                                }, {
+                                    "name": "Gobo 4 shaking, slow (096) to fast (103)",
+                                    "initial": 96,
+                                    "final": 103
+                                }, {
+                                    "name": "Gobo 5 shaking, slow (104) to fast (111)",
+                                    "initial": 104,
+                                    "final": 111
+                                }, {
+                                    "name": "Gobo 6 shaking, slow (112) to fast (119)",
+                                    "initial": 112,
+                                    "final": 119
+                                }, {
+                                    "name": "Gobo 7 shaking, slow (120) to fast (127)",
+                                    "initial": 120,
+                                    "final": 127
+                                }, {
+                                    "name": "Counterclockwise gobo change, fast (128) to slow (189)",
+                                    "initial": 128,
+                                    "final": 189
+                                }, {
+                                    "name": "Stop at current position",
+                                    "initial": 190,
+                                    "final": 193
+                                }, {
+                                    "name": "Clockwise gobo change, slow (194) to fast (255) ",
+                                    "initial": 194,
+                                    "final": 255
+                                }],
+                                "addressOffset": 8
+                            }, {
+                                "name": "Gobo Rotation",
+                                "type": "GOBO-WHEEL-MODIFIER",
+                                "bounds": [{
+                                    "name": "Indexed position",
+                                    "initial": 0,
+                                    "final": 127,
+                                    "range": {
+                                        "unit": "ANGLE",
+                                        "initial": 0,
+                                        "final": 360
+                                    }
+                                }, {
+                                    "name": "Counterclockwise gobo scroll, fast (128) to slow (189)",
+                                    "initial": 128,
+                                    "final": 189
+                                }, {
+                                    "name": "Stop at current position",
+                                    "initial": 190,
+                                    "final": 193
+                                }, {
+                                    "name": "Clockwise gobo scroll, slow (194) to fast (255) ",
+                                    "initial": 194,
+                                    "final": 255
+                                }],
+                                "addressOffset": 9
+                            }, {
+                                "name": "Prism",
+                                "type": "PRISM",
+                                "bounds": [{
+                                    "name": "No function",
+                                    "initial": 0,
+                                    "final": 127
+                                }, {
+                                    "name": "Prism effect",
+                                    "initial": 128,
+                                    "final": 255
+                                }],
+                                "addressOffset": 10
+                            }, {
+                                "name": "Macro Functions",
+                                "type": "FUNCTION",
+                                "bounds": [{
+                                    "name": "No function",
+                                    "initial": 0,
+                                    "final": 7
+                                }, {
+                                    "name": "Automatic movement 1",
+                                    "initial": 8,
+                                    "final": 23
+                                }, {
+                                    "name": "Automatic movement 2",
+                                    "initial": 24,
+                                    "final": 39
+                                }, {
+                                    "name": "Automatic movement 3",
+                                    "initial": 40,
+                                    "final": 55
+                                }, {
+                                    "name": "Automatic movement 4",
+                                    "initial": 56,
+                                    "final": 71
+                                }, {
+                                    "name": "Automatic movement 5",
+                                    "initial": 72,
+                                    "final": 87
+                                }, {
+                                    "name": "Automatic movement 6",
+                                    "initial": 88,
+                                    "final": 103
+                                }, {
+                                    "name": "Automatic movement 7",
+                                    "initial": 104,
+                                    "final": 119
+                                }, {
+                                    "name": "Automatic movement 8",
+                                    "initial": 120,
+                                    "final": 135
+                                }, {
+                                    "name": "Sound-active movement 1",
+                                    "initial": 136,
+                                    "final": 151
+                                }, {
+                                    "name": "Sound-active movement 2",
+                                    "initial": 152,
+                                    "final": 167
+                                }, {
+                                    "name": "Sound-active movement 3",
+                                    "initial": 168,
+                                    "final": 183
+                                }, {
+                                    "name": "Sound-active movement 4",
+                                    "initial": 184,
+                                    "final": 199
+                                }, {
+                                    "name": "Sound-active movement 5",
+                                    "initial": 200,
+                                    "final": 215
+                                }, {
+                                    "name": "Sound-active movement 6",
+                                    "initial": 216,
+                                    "final": 231
+                                }, {
+                                    "name": "Sound-active movement 7",
+                                    "initial": 232,
+                                    "final": 247
+                                }, {
+                                    "name": "Sound-active movement 8",
+                                    "initial": 248,
+                                    "final": 255
+                                }],
+                                "addressOffset": 11
+                            }, {
+                                "name": "Control Functions",
+                                "type": "FUNCTION",
+                                "bounds": [{
+                                    "name": "No function",
+                                    "initial": 0,
+                                    "final": 49
+                                }, {
+                                    "name": "Blackout during pan/tilt or colour/gobo change",
+                                    "initial": 50,
+                                    "final": 59
+                                }, {
+                                    "name": "Disable blackout during pan/tilt or colour/gobo change",
+                                    "initial": 60,
+                                    "final": 69
+                                }, {
+                                    "name": "Blackout during pan/tilt",
+                                    "initial": 70,
+                                    "final": 79
+                                }, {
+                                    "name": "Disable blackout during pan/tilt",
+                                    "initial": 80,
+                                    "final": 89
+                                }, {
+                                    "name": "Blackout during colour change",
+                                    "initial": 90,
+                                    "final": 99
+                                }, {
+                                    "name": "Disable blackout during colour change",
+                                    "initial": 100,
+                                    "final": 109
+                                }, {
+                                    "name": "Blackout during gobo change",
+                                    "initial": 110,
+                                    "final": 119
+                                }, {
+                                    "name": "Disable blackout during gobo change",
+                                    "initial": 120,
+                                    "final": 129
+                                }, {
+                                    "name": "No function",
+                                    "initial": 130,
+                                    "final": 139
+                                }, {
+                                    "name": "Reset pan/tilt",
+                                    "initial": 140,
+                                    "final": 149
+                                }, {
+                                    "name": "Reset colour/gobo/prism",
+                                    "initial": 150,
+                                    "final": 169
+                                }, {
+                                    "name": "No function",
+                                    "initial": 170,
+                                    "final": 199
+                                }, {
+                                    "name": "Reset all",
+                                    "initial": 200,
+                                    "final": 209
+                                }, {
+                                    "name": "No function",
+                                    "initial": 210,
+                                    "final": 255
+                                }],
+                                "addressOffset": 12
+                            }],
+                            "channelModes": [{
+                                "count": 13,
+                                "channels": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+                            }, {
+                                "count": 7,
+                                "channels": [0, 2, 6, 7, 8, 9, 10]
+                            }],
+                            "options": {
+                                "channelMode": 0
+                            }
+                        }
+                    },
+                    "addressChannels": [{
+                        "name": "Gobo",
+                        "type": "GOBO-WHEEL",
+                        "bounds": [{
+                            "name": "Open/white",
+                            "initial": 0,
+                            "final": 7
+                        }, {
+                            "name": "Gobo 1",
+                            "initial": 8,
+                            "final": 15
+                        }, {
+                            "name": "Gobo 2",
+                            "initial": 16,
+                            "final": 23
+                        }, {
+                            "name": "Gobo 3",
+                            "initial": 24,
+                            "final": 31
+                        }, {
+                            "name": "Gobo 4",
+                            "initial": 32,
+                            "final": 39
+                        }, {
+                            "name": "Gobo 5",
+                            "initial": 40,
+                            "final": 47
+                        }, {
+                            "name": "Gobo 6",
+                            "initial": 48,
+                            "final": 55
+                        }, {
+                            "name": "Gobo 7",
+                            "initial": 56,
+                            "final": 63
+                        }, {
+                            "name": "Open spot shaking, slow (064) to fast (071)",
+                            "initial": 64,
+                            "final": 71
+                        }, {
+                            "name": "Gobo 1 shaking, slow (072) to fast (079)",
+                            "initial": 72,
+                            "final": 79
+                        }, {
+                            "name": "Gobo 2 shaking, slow (080) to fast (087)",
+                            "initial": 80,
+                            "final": 87
+                        }, {
+                            "name": "Gobo 3 shaking, slow (088) to fast (095)",
+                            "initial": 88,
+                            "final": 95
+                        }, {
+                            "name": "Gobo 4 shaking, slow (096) to fast (103)",
+                            "initial": 96,
+                            "final": 103
+                        }, {
+                            "name": "Gobo 5 shaking, slow (104) to fast (111)",
+                            "initial": 104,
+                            "final": 111
+                        }, {
+                            "name": "Gobo 6 shaking, slow (112) to fast (119)",
+                            "initial": 112,
+                            "final": 119
+                        }, {
+                            "name": "Gobo 7 shaking, slow (120) to fast (127)",
+                            "initial": 120,
+                            "final": 127
+                        }, {
+                            "name": "Counterclockwise gobo change, fast (128) to slow (189)",
+                            "initial": 128,
+                            "final": 189
+                        }, {
+                            "name": "Stop at current position",
+                            "initial": 190,
+                            "final": 193
+                        }, {
+                            "name": "Clockwise gobo change, slow (194) to fast (255) ",
+                            "initial": 194,
+                            "final": 255
+                        }],
+                        "addressOffset": 8
+                    }, {
+                        "name": "Gobo Rotation",
+                        "type": "GOBO-WHEEL-MODIFIER",
+                        "bounds": [{
+                            "name": "Indexed position",
+                            "initial": 0,
+                            "final": 127,
+                            "range": {
+                                "unit": "ANGLE",
+                                "initial": 0,
+                                "final": 360
+                            }
+                        }, {
+                            "name": "Counterclockwise gobo scroll, fast (128) to slow (189)",
+                            "initial": 128,
+                            "final": 189
+                        }, {
+                            "name": "Stop at current position",
+                            "initial": 190,
+                            "final": 193
+                        }, {
+                            "name": "Clockwise gobo scroll, slow (194) to fast (255) ",
+                            "initial": 194,
+                            "final": 255
+                        }],
+                        "addressOffset": 9
+                    }, {
+                        "name": "Shutter",
+                        "type": "SHUTTER",
+                        "bounds": [{
+                            "name": "Close",
+                            "initial": 0,
+                            "final": 3
+                        }, {
+                            "name": "Open",
+                            "initial": 4,
+                            "final": 7
+                        }, {
+                            "name": "Strobe Slow->Fast",
+                            "initial": 8,
+                            "final": 76,
+                            "range": {
+                                "unit": "MAGNITUDE",
+                                "initial": 0,
+                                "final": 1
+                            }
+                        }, {
+                            "name": "Pulse Slow->Fast",
+                            "initial": 77,
+                            "final": 145,
+                            "range": {
+                                "unit": "MAGNITUDE",
+                                "initial": 0,
+                                "final": 1
+                            }
+                        }, {
+                            "name": "Random Strobe Slow->Fast",
+                            "initial": 146,
+                            "final": 215,
+                            "range": {
+                                "unit": "MAGNITUDE",
+                                "initial": 0,
+                                "final": 1
+                            }
+                        }, {
+                            "name": "Open",
+                            "initial": 216,
+                            "final": 255
+                        }],
+                        "addressOffset": 6
+                    }]
+                }]
+            ]
+        }],
+        ["COLOUR", {
+            "dataType": "Map",
+            "value": [
+                ["fxtr-7b5c1360-2765-4e51-b9ad-9221d85feea1-0", {
+                    "channelData": {
+                        "channel": 1,
+                        "dmxAddressRange": {
+                            "initial": 1,
+                            "final": 13
+                        },
+                        "name": "Gesture Spot 300",
+                        "profile": {
+                            "id": "fxtr-7b5c1360-2765-4e51-b9ad-9221d85feea1",
+                            "brand": "brnd-edaa91eb-cded-4825-9c3f-fe919cb641b7",
+                            "name": "Gesture Spot 300",
+                            "productPage": "https://www.marqlighting.com/products/view/gesture-spot-300",
+                            "tags": ["MOVER", "SPOT", "COLOUR-SCROLLER", "GOBO-SCROLLER", "PRISM"],
+                            "channels": [{
+                                "name": "Pan",
+                                "type": "POS-PAN",
+                                "range": {
+                                    "unit": "ANGLE",
+                                    "initial": 0,
+                                    "final": 540
+                                },
+                                "addressOffset": 0
+                            }, {
+                                "name": "Fine Pan",
+                                "type": "POS-PAN-FINE",
+                                "range": {
+                                    "unit": "PERCENT",
+                                    "initial": 0,
+                                    "final": 100
+                                },
+                                "addressOffset": 1
+                            }, {
+                                "name": "Tilt",
+                                "type": "POS-TILT",
+                                "range": {
+                                    "unit": "ANGLE",
+                                    "initial": 0,
+                                    "final": 270
+                                },
+                                "addressOffset": 2
+                            }, {
+                                "name": "Fine Tilt",
+                                "type": "POS-TILT-FINE",
+                                "range": {
+                                    "unit": "PERCENT",
+                                    "initial": 0,
+                                    "final": 100
+                                },
+                                "addressOffset": 3
+                            }, {
+                                "name": "Pan/Tilt Speed",
+                                "type": "FUNCTION",
+                                "range": {
+                                    "unit": "MAGNITUDE",
+                                    "initial": 1,
+                                    "final": 0
+                                },
+                                "addressOffset": 4
+                            }, {
+                                "name": "Dimmer",
+                                "type": "INTENSITY",
+                                "range": {
+                                    "unit": "MAGNITUDE",
+                                    "initial": 0,
+                                    "final": 1
+                                },
+                                "addressOffset": 5
+                            }, {
+                                "name": "Shutter",
+                                "type": "SHUTTER",
+                                "bounds": [{
+                                    "name": "Close",
+                                    "initial": 0,
+                                    "final": 3
+                                }, {
+                                    "name": "Open",
+                                    "initial": 4,
+                                    "final": 7
+                                }, {
+                                    "name": "Strobe Slow->Fast",
+                                    "initial": 8,
+                                    "final": 76,
+                                    "range": {
+                                        "unit": "MAGNITUDE",
+                                        "initial": 0,
+                                        "final": 1
+                                    }
+                                }, {
+                                    "name": "Pulse Slow->Fast",
+                                    "initial": 77,
+                                    "final": 145,
+                                    "range": {
+                                        "unit": "MAGNITUDE",
+                                        "initial": 0,
+                                        "final": 1
+                                    }
+                                }, {
+                                    "name": "Random Strobe Slow->Fast",
+                                    "initial": 146,
+                                    "final": 215,
+                                    "range": {
+                                        "unit": "MAGNITUDE",
+                                        "initial": 0,
+                                        "final": 1
+                                    }
+                                }, {
+                                    "name": "Open",
+                                    "initial": 216,
+                                    "final": 255
+                                }],
+                                "addressOffset": 6
+                            }, {
+                                "name": "Colour Wheel",
+                                "type": "COLOUR-WHEEL",
+                                "bounds": [{
+                                    "name": "White",
+                                    "initial": 0,
+                                    "final": 6
+                                }, {
+                                    "name": "Red",
+                                    "initial": 7,
+                                    "final": 13
+                                }, {
+                                    "name": "Orange",
+                                    "initial": 14,
+                                    "final": 20
+                                }, {
+                                    "name": "Green",
+                                    "initial": 21,
+                                    "final": 27
+                                }, {
+                                    "name": "Light Blue",
+                                    "initial": 28,
+                                    "final": 34
+                                }, {
+                                    "name": "Purple",
+                                    "initial": 35,
+                                    "final": 41
+                                }, {
+                                    "name": "Yellow",
+                                    "initial": 42,
+                                    "final": 48
+                                }, {
+                                    "name": "Blue",
+                                    "initial": 49,
+                                    "final": 55
+                                }, {
+                                    "name": "Pink",
+                                    "initial": 56,
+                                    "final": 63
+                                }, {
+                                    "name": "colour indexing",
+                                    "initial": 64,
+                                    "final": 127
+                                }, {
+                                    "name": "Clockwise Fast->Slow",
+                                    "initial": 128,
+                                    "final": 189,
+                                    "range": {
+                                        "unit": "MAGNITUDE",
+                                        "initial": 1,
+                                        "final": 0
+                                    }
+                                }, {
+                                    "name": "Stop",
+                                    "initial": 190,
+                                    "final": 193
+                                }, {
+                                    "name": "Counterclockwise Slow->Fast",
+                                    "initial": 194,
+                                    "final": 255,
+                                    "range": {
+                                        "unit": "MAGNITUDE",
+                                        "initial": 0,
+                                        "final": 1
+                                    }
+                                }],
+                                "addressOffset": 7
+                            }, {
+                                "name": "Gobo",
+                                "type": "GOBO-WHEEL",
+                                "bounds": [{
+                                    "name": "Open/white",
+                                    "initial": 0,
+                                    "final": 7
+                                }, {
+                                    "name": "Gobo 1",
+                                    "initial": 8,
+                                    "final": 15
+                                }, {
+                                    "name": "Gobo 2",
+                                    "initial": 16,
+                                    "final": 23
+                                }, {
+                                    "name": "Gobo 3",
+                                    "initial": 24,
+                                    "final": 31
+                                }, {
+                                    "name": "Gobo 4",
+                                    "initial": 32,
+                                    "final": 39
+                                }, {
+                                    "name": "Gobo 5",
+                                    "initial": 40,
+                                    "final": 47
+                                }, {
+                                    "name": "Gobo 6",
+                                    "initial": 48,
+                                    "final": 55
+                                }, {
+                                    "name": "Gobo 7",
+                                    "initial": 56,
+                                    "final": 63
+                                }, {
+                                    "name": "Open spot shaking, slow (064) to fast (071)",
+                                    "initial": 64,
+                                    "final": 71
+                                }, {
+                                    "name": "Gobo 1 shaking, slow (072) to fast (079)",
+                                    "initial": 72,
+                                    "final": 79
+                                }, {
+                                    "name": "Gobo 2 shaking, slow (080) to fast (087)",
+                                    "initial": 80,
+                                    "final": 87
+                                }, {
+                                    "name": "Gobo 3 shaking, slow (088) to fast (095)",
+                                    "initial": 88,
+                                    "final": 95
+                                }, {
+                                    "name": "Gobo 4 shaking, slow (096) to fast (103)",
+                                    "initial": 96,
+                                    "final": 103
+                                }, {
+                                    "name": "Gobo 5 shaking, slow (104) to fast (111)",
+                                    "initial": 104,
+                                    "final": 111
+                                }, {
+                                    "name": "Gobo 6 shaking, slow (112) to fast (119)",
+                                    "initial": 112,
+                                    "final": 119
+                                }, {
+                                    "name": "Gobo 7 shaking, slow (120) to fast (127)",
+                                    "initial": 120,
+                                    "final": 127
+                                }, {
+                                    "name": "Counterclockwise gobo change, fast (128) to slow (189)",
+                                    "initial": 128,
+                                    "final": 189
+                                }, {
+                                    "name": "Stop at current position",
+                                    "initial": 190,
+                                    "final": 193
+                                }, {
+                                    "name": "Clockwise gobo change, slow (194) to fast (255) ",
+                                    "initial": 194,
+                                    "final": 255
+                                }],
+                                "addressOffset": 8
+                            }, {
+                                "name": "Gobo Rotation",
+                                "type": "GOBO-WHEEL-MODIFIER",
+                                "bounds": [{
+                                    "name": "Indexed position",
+                                    "initial": 0,
+                                    "final": 127,
+                                    "range": {
+                                        "unit": "ANGLE",
+                                        "initial": 0,
+                                        "final": 360
+                                    }
+                                }, {
+                                    "name": "Counterclockwise gobo scroll, fast (128) to slow (189)",
+                                    "initial": 128,
+                                    "final": 189
+                                }, {
+                                    "name": "Stop at current position",
+                                    "initial": 190,
+                                    "final": 193
+                                }, {
+                                    "name": "Clockwise gobo scroll, slow (194) to fast (255) ",
+                                    "initial": 194,
+                                    "final": 255
+                                }],
+                                "addressOffset": 9
+                            }, {
+                                "name": "Prism",
+                                "type": "PRISM",
+                                "bounds": [{
+                                    "name": "No function",
+                                    "initial": 0,
+                                    "final": 127
+                                }, {
+                                    "name": "Prism effect",
+                                    "initial": 128,
+                                    "final": 255
+                                }],
+                                "addressOffset": 10
+                            }, {
+                                "name": "Macro Functions",
+                                "type": "FUNCTION",
+                                "bounds": [{
+                                    "name": "No function",
+                                    "initial": 0,
+                                    "final": 7
+                                }, {
+                                    "name": "Automatic movement 1",
+                                    "initial": 8,
+                                    "final": 23
+                                }, {
+                                    "name": "Automatic movement 2",
+                                    "initial": 24,
+                                    "final": 39
+                                }, {
+                                    "name": "Automatic movement 3",
+                                    "initial": 40,
+                                    "final": 55
+                                }, {
+                                    "name": "Automatic movement 4",
+                                    "initial": 56,
+                                    "final": 71
+                                }, {
+                                    "name": "Automatic movement 5",
+                                    "initial": 72,
+                                    "final": 87
+                                }, {
+                                    "name": "Automatic movement 6",
+                                    "initial": 88,
+                                    "final": 103
+                                }, {
+                                    "name": "Automatic movement 7",
+                                    "initial": 104,
+                                    "final": 119
+                                }, {
+                                    "name": "Automatic movement 8",
+                                    "initial": 120,
+                                    "final": 135
+                                }, {
+                                    "name": "Sound-active movement 1",
+                                    "initial": 136,
+                                    "final": 151
+                                }, {
+                                    "name": "Sound-active movement 2",
+                                    "initial": 152,
+                                    "final": 167
+                                }, {
+                                    "name": "Sound-active movement 3",
+                                    "initial": 168,
+                                    "final": 183
+                                }, {
+                                    "name": "Sound-active movement 4",
+                                    "initial": 184,
+                                    "final": 199
+                                }, {
+                                    "name": "Sound-active movement 5",
+                                    "initial": 200,
+                                    "final": 215
+                                }, {
+                                    "name": "Sound-active movement 6",
+                                    "initial": 216,
+                                    "final": 231
+                                }, {
+                                    "name": "Sound-active movement 7",
+                                    "initial": 232,
+                                    "final": 247
+                                }, {
+                                    "name": "Sound-active movement 8",
+                                    "initial": 248,
+                                    "final": 255
+                                }],
+                                "addressOffset": 11
+                            }, {
+                                "name": "Control Functions",
+                                "type": "FUNCTION",
+                                "bounds": [{
+                                    "name": "No function",
+                                    "initial": 0,
+                                    "final": 49
+                                }, {
+                                    "name": "Blackout during pan/tilt or colour/gobo change",
+                                    "initial": 50,
+                                    "final": 59
+                                }, {
+                                    "name": "Disable blackout during pan/tilt or colour/gobo change",
+                                    "initial": 60,
+                                    "final": 69
+                                }, {
+                                    "name": "Blackout during pan/tilt",
+                                    "initial": 70,
+                                    "final": 79
+                                }, {
+                                    "name": "Disable blackout during pan/tilt",
+                                    "initial": 80,
+                                    "final": 89
+                                }, {
+                                    "name": "Blackout during colour change",
+                                    "initial": 90,
+                                    "final": 99
+                                }, {
+                                    "name": "Disable blackout during colour change",
+                                    "initial": 100,
+                                    "final": 109
+                                }, {
+                                    "name": "Blackout during gobo change",
+                                    "initial": 110,
+                                    "final": 119
+                                }, {
+                                    "name": "Disable blackout during gobo change",
+                                    "initial": 120,
+                                    "final": 129
+                                }, {
+                                    "name": "No function",
+                                    "initial": 130,
+                                    "final": 139
+                                }, {
+                                    "name": "Reset pan/tilt",
+                                    "initial": 140,
+                                    "final": 149
+                                }, {
+                                    "name": "Reset colour/gobo/prism",
+                                    "initial": 150,
+                                    "final": 169
+                                }, {
+                                    "name": "No function",
+                                    "initial": 170,
+                                    "final": 199
+                                }, {
+                                    "name": "Reset all",
+                                    "initial": 200,
+                                    "final": 209
+                                }, {
+                                    "name": "No function",
+                                    "initial": 210,
+                                    "final": 255
+                                }],
+                                "addressOffset": 12
+                            }],
+                            "channelModes": [{
+                                "count": 13,
+                                "channels": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+                            }, {
+                                "count": 7,
+                                "channels": [0, 2, 6, 7, 8, 9, 10]
+                            }],
+                            "options": {
+                                "channelMode": 0
+                            }
+                        }
+                    },
+                    "addressChannels": [{
+                        "name": "Colour Wheel",
+                        "type": "COLOUR-WHEEL",
+                        "bounds": [{
+                            "name": "White",
+                            "initial": 0,
+                            "final": 6
+                        }, {
+                            "name": "Red",
+                            "initial": 7,
+                            "final": 13
+                        }, {
+                            "name": "Orange",
+                            "initial": 14,
+                            "final": 20
+                        }, {
+                            "name": "Green",
+                            "initial": 21,
+                            "final": 27
+                        }, {
+                            "name": "Light Blue",
+                            "initial": 28,
+                            "final": 34
+                        }, {
+                            "name": "Purple",
+                            "initial": 35,
+                            "final": 41
+                        }, {
+                            "name": "Yellow",
+                            "initial": 42,
+                            "final": 48
+                        }, {
+                            "name": "Blue",
+                            "initial": 49,
+                            "final": 55
+                        }, {
+                            "name": "Pink",
+                            "initial": 56,
+                            "final": 63
+                        }, {
+                            "name": "colour indexing",
+                            "initial": 64,
+                            "final": 127
+                        }, {
+                            "name": "Clockwise Fast->Slow",
+                            "initial": 128,
+                            "final": 189,
+                            "range": {
+                                "unit": "MAGNITUDE",
+                                "initial": 1,
+                                "final": 0
+                            }
+                        }, {
+                            "name": "Stop",
+                            "initial": 190,
+                            "final": 193
+                        }, {
+                            "name": "Counterclockwise Slow->Fast",
+                            "initial": 194,
+                            "final": 255,
+                            "range": {
+                                "unit": "MAGNITUDE",
+                                "initial": 0,
+                                "final": 1
+                            }
+                        }],
+                        "addressOffset": 7
+                    }]
+                }]
+            ]
+        }],
+        ["POSITION", {
+            "dataType": "Map",
+            "value": [
+                ["fxtr-7b5c1360-2765-4e51-b9ad-9221d85feea1-0", {
+                    "channelData": {
+                        "channel": 1,
+                        "dmxAddressRange": {
+                            "initial": 1,
+                            "final": 13
+                        },
+                        "name": "Gesture Spot 300",
+                        "profile": {
+                            "id": "fxtr-7b5c1360-2765-4e51-b9ad-9221d85feea1",
+                            "brand": "brnd-edaa91eb-cded-4825-9c3f-fe919cb641b7",
+                            "name": "Gesture Spot 300",
+                            "productPage": "https://www.marqlighting.com/products/view/gesture-spot-300",
+                            "tags": ["MOVER", "SPOT", "COLOUR-SCROLLER", "GOBO-SCROLLER", "PRISM"],
+                            "channels": [{
+                                "name": "Pan",
+                                "type": "POS-PAN",
+                                "range": {
+                                    "unit": "ANGLE",
+                                    "initial": 0,
+                                    "final": 540
+                                },
+                                "addressOffset": 0
+                            }, {
+                                "name": "Fine Pan",
+                                "type": "POS-PAN-FINE",
+                                "range": {
+                                    "unit": "PERCENT",
+                                    "initial": 0,
+                                    "final": 100
+                                },
+                                "addressOffset": 1
+                            }, {
+                                "name": "Tilt",
+                                "type": "POS-TILT",
+                                "range": {
+                                    "unit": "ANGLE",
+                                    "initial": 0,
+                                    "final": 270
+                                },
+                                "addressOffset": 2
+                            }, {
+                                "name": "Fine Tilt",
+                                "type": "POS-TILT-FINE",
+                                "range": {
+                                    "unit": "PERCENT",
+                                    "initial": 0,
+                                    "final": 100
+                                },
+                                "addressOffset": 3
+                            }, {
+                                "name": "Pan/Tilt Speed",
+                                "type": "FUNCTION",
+                                "range": {
+                                    "unit": "MAGNITUDE",
+                                    "initial": 1,
+                                    "final": 0
+                                },
+                                "addressOffset": 4
+                            }, {
+                                "name": "Dimmer",
+                                "type": "INTENSITY",
+                                "range": {
+                                    "unit": "MAGNITUDE",
+                                    "initial": 0,
+                                    "final": 1
+                                },
+                                "addressOffset": 5
+                            }, {
+                                "name": "Shutter",
+                                "type": "SHUTTER",
+                                "bounds": [{
+                                    "name": "Close",
+                                    "initial": 0,
+                                    "final": 3
+                                }, {
+                                    "name": "Open",
+                                    "initial": 4,
+                                    "final": 7
+                                }, {
+                                    "name": "Strobe Slow->Fast",
+                                    "initial": 8,
+                                    "final": 76,
+                                    "range": {
+                                        "unit": "MAGNITUDE",
+                                        "initial": 0,
+                                        "final": 1
+                                    }
+                                }, {
+                                    "name": "Pulse Slow->Fast",
+                                    "initial": 77,
+                                    "final": 145,
+                                    "range": {
+                                        "unit": "MAGNITUDE",
+                                        "initial": 0,
+                                        "final": 1
+                                    }
+                                }, {
+                                    "name": "Random Strobe Slow->Fast",
+                                    "initial": 146,
+                                    "final": 215,
+                                    "range": {
+                                        "unit": "MAGNITUDE",
+                                        "initial": 0,
+                                        "final": 1
+                                    }
+                                }, {
+                                    "name": "Open",
+                                    "initial": 216,
+                                    "final": 255
+                                }],
+                                "addressOffset": 6
+                            }, {
+                                "name": "Colour Wheel",
+                                "type": "COLOUR-WHEEL",
+                                "bounds": [{
+                                    "name": "White",
+                                    "initial": 0,
+                                    "final": 6
+                                }, {
+                                    "name": "Red",
+                                    "initial": 7,
+                                    "final": 13
+                                }, {
+                                    "name": "Orange",
+                                    "initial": 14,
+                                    "final": 20
+                                }, {
+                                    "name": "Green",
+                                    "initial": 21,
+                                    "final": 27
+                                }, {
+                                    "name": "Light Blue",
+                                    "initial": 28,
+                                    "final": 34
+                                }, {
+                                    "name": "Purple",
+                                    "initial": 35,
+                                    "final": 41
+                                }, {
+                                    "name": "Yellow",
+                                    "initial": 42,
+                                    "final": 48
+                                }, {
+                                    "name": "Blue",
+                                    "initial": 49,
+                                    "final": 55
+                                }, {
+                                    "name": "Pink",
+                                    "initial": 56,
+                                    "final": 63
+                                }, {
+                                    "name": "colour indexing",
+                                    "initial": 64,
+                                    "final": 127
+                                }, {
+                                    "name": "Clockwise Fast->Slow",
+                                    "initial": 128,
+                                    "final": 189,
+                                    "range": {
+                                        "unit": "MAGNITUDE",
+                                        "initial": 1,
+                                        "final": 0
+                                    }
+                                }, {
+                                    "name": "Stop",
+                                    "initial": 190,
+                                    "final": 193
+                                }, {
+                                    "name": "Counterclockwise Slow->Fast",
+                                    "initial": 194,
+                                    "final": 255,
+                                    "range": {
+                                        "unit": "MAGNITUDE",
+                                        "initial": 0,
+                                        "final": 1
+                                    }
+                                }],
+                                "addressOffset": 7
+                            }, {
+                                "name": "Gobo",
+                                "type": "GOBO-WHEEL",
+                                "bounds": [{
+                                    "name": "Open/white",
+                                    "initial": 0,
+                                    "final": 7
+                                }, {
+                                    "name": "Gobo 1",
+                                    "initial": 8,
+                                    "final": 15
+                                }, {
+                                    "name": "Gobo 2",
+                                    "initial": 16,
+                                    "final": 23
+                                }, {
+                                    "name": "Gobo 3",
+                                    "initial": 24,
+                                    "final": 31
+                                }, {
+                                    "name": "Gobo 4",
+                                    "initial": 32,
+                                    "final": 39
+                                }, {
+                                    "name": "Gobo 5",
+                                    "initial": 40,
+                                    "final": 47
+                                }, {
+                                    "name": "Gobo 6",
+                                    "initial": 48,
+                                    "final": 55
+                                }, {
+                                    "name": "Gobo 7",
+                                    "initial": 56,
+                                    "final": 63
+                                }, {
+                                    "name": "Open spot shaking, slow (064) to fast (071)",
+                                    "initial": 64,
+                                    "final": 71
+                                }, {
+                                    "name": "Gobo 1 shaking, slow (072) to fast (079)",
+                                    "initial": 72,
+                                    "final": 79
+                                }, {
+                                    "name": "Gobo 2 shaking, slow (080) to fast (087)",
+                                    "initial": 80,
+                                    "final": 87
+                                }, {
+                                    "name": "Gobo 3 shaking, slow (088) to fast (095)",
+                                    "initial": 88,
+                                    "final": 95
+                                }, {
+                                    "name": "Gobo 4 shaking, slow (096) to fast (103)",
+                                    "initial": 96,
+                                    "final": 103
+                                }, {
+                                    "name": "Gobo 5 shaking, slow (104) to fast (111)",
+                                    "initial": 104,
+                                    "final": 111
+                                }, {
+                                    "name": "Gobo 6 shaking, slow (112) to fast (119)",
+                                    "initial": 112,
+                                    "final": 119
+                                }, {
+                                    "name": "Gobo 7 shaking, slow (120) to fast (127)",
+                                    "initial": 120,
+                                    "final": 127
+                                }, {
+                                    "name": "Counterclockwise gobo change, fast (128) to slow (189)",
+                                    "initial": 128,
+                                    "final": 189
+                                }, {
+                                    "name": "Stop at current position",
+                                    "initial": 190,
+                                    "final": 193
+                                }, {
+                                    "name": "Clockwise gobo change, slow (194) to fast (255) ",
+                                    "initial": 194,
+                                    "final": 255
+                                }],
+                                "addressOffset": 8
+                            }, {
+                                "name": "Gobo Rotation",
+                                "type": "GOBO-WHEEL-MODIFIER",
+                                "bounds": [{
+                                    "name": "Indexed position",
+                                    "initial": 0,
+                                    "final": 127,
+                                    "range": {
+                                        "unit": "ANGLE",
+                                        "initial": 0,
+                                        "final": 360
+                                    }
+                                }, {
+                                    "name": "Counterclockwise gobo scroll, fast (128) to slow (189)",
+                                    "initial": 128,
+                                    "final": 189
+                                }, {
+                                    "name": "Stop at current position",
+                                    "initial": 190,
+                                    "final": 193
+                                }, {
+                                    "name": "Clockwise gobo scroll, slow (194) to fast (255) ",
+                                    "initial": 194,
+                                    "final": 255
+                                }],
+                                "addressOffset": 9
+                            }, {
+                                "name": "Prism",
+                                "type": "PRISM",
+                                "bounds": [{
+                                    "name": "No function",
+                                    "initial": 0,
+                                    "final": 127
+                                }, {
+                                    "name": "Prism effect",
+                                    "initial": 128,
+                                    "final": 255
+                                }],
+                                "addressOffset": 10
+                            }, {
+                                "name": "Macro Functions",
+                                "type": "FUNCTION",
+                                "bounds": [{
+                                    "name": "No function",
+                                    "initial": 0,
+                                    "final": 7
+                                }, {
+                                    "name": "Automatic movement 1",
+                                    "initial": 8,
+                                    "final": 23
+                                }, {
+                                    "name": "Automatic movement 2",
+                                    "initial": 24,
+                                    "final": 39
+                                }, {
+                                    "name": "Automatic movement 3",
+                                    "initial": 40,
+                                    "final": 55
+                                }, {
+                                    "name": "Automatic movement 4",
+                                    "initial": 56,
+                                    "final": 71
+                                }, {
+                                    "name": "Automatic movement 5",
+                                    "initial": 72,
+                                    "final": 87
+                                }, {
+                                    "name": "Automatic movement 6",
+                                    "initial": 88,
+                                    "final": 103
+                                }, {
+                                    "name": "Automatic movement 7",
+                                    "initial": 104,
+                                    "final": 119
+                                }, {
+                                    "name": "Automatic movement 8",
+                                    "initial": 120,
+                                    "final": 135
+                                }, {
+                                    "name": "Sound-active movement 1",
+                                    "initial": 136,
+                                    "final": 151
+                                }, {
+                                    "name": "Sound-active movement 2",
+                                    "initial": 152,
+                                    "final": 167
+                                }, {
+                                    "name": "Sound-active movement 3",
+                                    "initial": 168,
+                                    "final": 183
+                                }, {
+                                    "name": "Sound-active movement 4",
+                                    "initial": 184,
+                                    "final": 199
+                                }, {
+                                    "name": "Sound-active movement 5",
+                                    "initial": 200,
+                                    "final": 215
+                                }, {
+                                    "name": "Sound-active movement 6",
+                                    "initial": 216,
+                                    "final": 231
+                                }, {
+                                    "name": "Sound-active movement 7",
+                                    "initial": 232,
+                                    "final": 247
+                                }, {
+                                    "name": "Sound-active movement 8",
+                                    "initial": 248,
+                                    "final": 255
+                                }],
+                                "addressOffset": 11
+                            }, {
+                                "name": "Control Functions",
+                                "type": "FUNCTION",
+                                "bounds": [{
+                                    "name": "No function",
+                                    "initial": 0,
+                                    "final": 49
+                                }, {
+                                    "name": "Blackout during pan/tilt or colour/gobo change",
+                                    "initial": 50,
+                                    "final": 59
+                                }, {
+                                    "name": "Disable blackout during pan/tilt or colour/gobo change",
+                                    "initial": 60,
+                                    "final": 69
+                                }, {
+                                    "name": "Blackout during pan/tilt",
+                                    "initial": 70,
+                                    "final": 79
+                                }, {
+                                    "name": "Disable blackout during pan/tilt",
+                                    "initial": 80,
+                                    "final": 89
+                                }, {
+                                    "name": "Blackout during colour change",
+                                    "initial": 90,
+                                    "final": 99
+                                }, {
+                                    "name": "Disable blackout during colour change",
+                                    "initial": 100,
+                                    "final": 109
+                                }, {
+                                    "name": "Blackout during gobo change",
+                                    "initial": 110,
+                                    "final": 119
+                                }, {
+                                    "name": "Disable blackout during gobo change",
+                                    "initial": 120,
+                                    "final": 129
+                                }, {
+                                    "name": "No function",
+                                    "initial": 130,
+                                    "final": 139
+                                }, {
+                                    "name": "Reset pan/tilt",
+                                    "initial": 140,
+                                    "final": 149
+                                }, {
+                                    "name": "Reset colour/gobo/prism",
+                                    "initial": 150,
+                                    "final": 169
+                                }, {
+                                    "name": "No function",
+                                    "initial": 170,
+                                    "final": 199
+                                }, {
+                                    "name": "Reset all",
+                                    "initial": 200,
+                                    "final": 209
+                                }, {
+                                    "name": "No function",
+                                    "initial": 210,
+                                    "final": 255
+                                }],
+                                "addressOffset": 12
+                            }],
+                            "channelModes": [{
+                                "count": 13,
+                                "channels": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+                            }, {
+                                "count": 7,
+                                "channels": [0, 2, 6, 7, 8, 9, 10]
+                            }],
+                            "options": {
+                                "channelMode": 0
+                            }
+                        }
+                    },
+                    "addressChannels": [{
+                        "name": "Pan",
+                        "type": "POS-PAN",
+                        "range": {
+                            "unit": "ANGLE",
+                            "initial": 0,
+                            "final": 540
+                        },
+                        "addressOffset": 0
+                    }, {
+                        "name": "Fine Pan",
+                        "type": "POS-PAN-FINE",
+                        "range": {
+                            "unit": "PERCENT",
+                            "initial": 0,
+                            "final": 100
+                        },
+                        "addressOffset": 1
+                    }, {
+                        "name": "Tilt",
+                        "type": "POS-TILT",
+                        "range": {
+                            "unit": "ANGLE",
+                            "initial": 0,
+                            "final": 270
+                        },
+                        "addressOffset": 2
+                    }, {
+                        "name": "Fine Tilt",
+                        "type": "POS-TILT-FINE",
+                        "range": {
+                            "unit": "PERCENT",
+                            "initial": 0,
+                            "final": 100
+                        },
+                        "addressOffset": 3
+                    }]
+                }]
+            ]
+        }],
+        ["SHAPE", {
+            "dataType": "Map",
+            "value": [
+                ["fxtr-7b5c1360-2765-4e51-b9ad-9221d85feea1-0", {
+                    "channelData": {
+                        "channel": 1,
+                        "dmxAddressRange": {
+                            "initial": 1,
+                            "final": 13
+                        },
+                        "name": "Gesture Spot 300",
+                        "profile": {
+                            "id": "fxtr-7b5c1360-2765-4e51-b9ad-9221d85feea1",
+                            "brand": "brnd-edaa91eb-cded-4825-9c3f-fe919cb641b7",
+                            "name": "Gesture Spot 300",
+                            "productPage": "https://www.marqlighting.com/products/view/gesture-spot-300",
+                            "tags": ["MOVER", "SPOT", "COLOUR-SCROLLER", "GOBO-SCROLLER", "PRISM"],
+                            "channels": [{
+                                "name": "Pan",
+                                "type": "POS-PAN",
+                                "range": {
+                                    "unit": "ANGLE",
+                                    "initial": 0,
+                                    "final": 540
+                                },
+                                "addressOffset": 0
+                            }, {
+                                "name": "Fine Pan",
+                                "type": "POS-PAN-FINE",
+                                "range": {
+                                    "unit": "PERCENT",
+                                    "initial": 0,
+                                    "final": 100
+                                },
+                                "addressOffset": 1
+                            }, {
+                                "name": "Tilt",
+                                "type": "POS-TILT",
+                                "range": {
+                                    "unit": "ANGLE",
+                                    "initial": 0,
+                                    "final": 270
+                                },
+                                "addressOffset": 2
+                            }, {
+                                "name": "Fine Tilt",
+                                "type": "POS-TILT-FINE",
+                                "range": {
+                                    "unit": "PERCENT",
+                                    "initial": 0,
+                                    "final": 100
+                                },
+                                "addressOffset": 3
+                            }, {
+                                "name": "Pan/Tilt Speed",
+                                "type": "FUNCTION",
+                                "range": {
+                                    "unit": "MAGNITUDE",
+                                    "initial": 1,
+                                    "final": 0
+                                },
+                                "addressOffset": 4
+                            }, {
+                                "name": "Dimmer",
+                                "type": "INTENSITY",
+                                "range": {
+                                    "unit": "MAGNITUDE",
+                                    "initial": 0,
+                                    "final": 1
+                                },
+                                "addressOffset": 5
+                            }, {
+                                "name": "Shutter",
+                                "type": "SHUTTER",
+                                "bounds": [{
+                                    "name": "Close",
+                                    "initial": 0,
+                                    "final": 3
+                                }, {
+                                    "name": "Open",
+                                    "initial": 4,
+                                    "final": 7
+                                }, {
+                                    "name": "Strobe Slow->Fast",
+                                    "initial": 8,
+                                    "final": 76,
+                                    "range": {
+                                        "unit": "MAGNITUDE",
+                                        "initial": 0,
+                                        "final": 1
+                                    }
+                                }, {
+                                    "name": "Pulse Slow->Fast",
+                                    "initial": 77,
+                                    "final": 145,
+                                    "range": {
+                                        "unit": "MAGNITUDE",
+                                        "initial": 0,
+                                        "final": 1
+                                    }
+                                }, {
+                                    "name": "Random Strobe Slow->Fast",
+                                    "initial": 146,
+                                    "final": 215,
+                                    "range": {
+                                        "unit": "MAGNITUDE",
+                                        "initial": 0,
+                                        "final": 1
+                                    }
+                                }, {
+                                    "name": "Open",
+                                    "initial": 216,
+                                    "final": 255
+                                }],
+                                "addressOffset": 6
+                            }, {
+                                "name": "Colour Wheel",
+                                "type": "COLOUR-WHEEL",
+                                "bounds": [{
+                                    "name": "White",
+                                    "initial": 0,
+                                    "final": 6
+                                }, {
+                                    "name": "Red",
+                                    "initial": 7,
+                                    "final": 13
+                                }, {
+                                    "name": "Orange",
+                                    "initial": 14,
+                                    "final": 20
+                                }, {
+                                    "name": "Green",
+                                    "initial": 21,
+                                    "final": 27
+                                }, {
+                                    "name": "Light Blue",
+                                    "initial": 28,
+                                    "final": 34
+                                }, {
+                                    "name": "Purple",
+                                    "initial": 35,
+                                    "final": 41
+                                }, {
+                                    "name": "Yellow",
+                                    "initial": 42,
+                                    "final": 48
+                                }, {
+                                    "name": "Blue",
+                                    "initial": 49,
+                                    "final": 55
+                                }, {
+                                    "name": "Pink",
+                                    "initial": 56,
+                                    "final": 63
+                                }, {
+                                    "name": "colour indexing",
+                                    "initial": 64,
+                                    "final": 127
+                                }, {
+                                    "name": "Clockwise Fast->Slow",
+                                    "initial": 128,
+                                    "final": 189,
+                                    "range": {
+                                        "unit": "MAGNITUDE",
+                                        "initial": 1,
+                                        "final": 0
+                                    }
+                                }, {
+                                    "name": "Stop",
+                                    "initial": 190,
+                                    "final": 193
+                                }, {
+                                    "name": "Counterclockwise Slow->Fast",
+                                    "initial": 194,
+                                    "final": 255,
+                                    "range": {
+                                        "unit": "MAGNITUDE",
+                                        "initial": 0,
+                                        "final": 1
+                                    }
+                                }],
+                                "addressOffset": 7
+                            }, {
+                                "name": "Gobo",
+                                "type": "GOBO-WHEEL",
+                                "bounds": [{
+                                    "name": "Open/white",
+                                    "initial": 0,
+                                    "final": 7
+                                }, {
+                                    "name": "Gobo 1",
+                                    "initial": 8,
+                                    "final": 15
+                                }, {
+                                    "name": "Gobo 2",
+                                    "initial": 16,
+                                    "final": 23
+                                }, {
+                                    "name": "Gobo 3",
+                                    "initial": 24,
+                                    "final": 31
+                                }, {
+                                    "name": "Gobo 4",
+                                    "initial": 32,
+                                    "final": 39
+                                }, {
+                                    "name": "Gobo 5",
+                                    "initial": 40,
+                                    "final": 47
+                                }, {
+                                    "name": "Gobo 6",
+                                    "initial": 48,
+                                    "final": 55
+                                }, {
+                                    "name": "Gobo 7",
+                                    "initial": 56,
+                                    "final": 63
+                                }, {
+                                    "name": "Open spot shaking, slow (064) to fast (071)",
+                                    "initial": 64,
+                                    "final": 71
+                                }, {
+                                    "name": "Gobo 1 shaking, slow (072) to fast (079)",
+                                    "initial": 72,
+                                    "final": 79
+                                }, {
+                                    "name": "Gobo 2 shaking, slow (080) to fast (087)",
+                                    "initial": 80,
+                                    "final": 87
+                                }, {
+                                    "name": "Gobo 3 shaking, slow (088) to fast (095)",
+                                    "initial": 88,
+                                    "final": 95
+                                }, {
+                                    "name": "Gobo 4 shaking, slow (096) to fast (103)",
+                                    "initial": 96,
+                                    "final": 103
+                                }, {
+                                    "name": "Gobo 5 shaking, slow (104) to fast (111)",
+                                    "initial": 104,
+                                    "final": 111
+                                }, {
+                                    "name": "Gobo 6 shaking, slow (112) to fast (119)",
+                                    "initial": 112,
+                                    "final": 119
+                                }, {
+                                    "name": "Gobo 7 shaking, slow (120) to fast (127)",
+                                    "initial": 120,
+                                    "final": 127
+                                }, {
+                                    "name": "Counterclockwise gobo change, fast (128) to slow (189)",
+                                    "initial": 128,
+                                    "final": 189
+                                }, {
+                                    "name": "Stop at current position",
+                                    "initial": 190,
+                                    "final": 193
+                                }, {
+                                    "name": "Clockwise gobo change, slow (194) to fast (255) ",
+                                    "initial": 194,
+                                    "final": 255
+                                }],
+                                "addressOffset": 8
+                            }, {
+                                "name": "Gobo Rotation",
+                                "type": "GOBO-WHEEL-MODIFIER",
+                                "bounds": [{
+                                    "name": "Indexed position",
+                                    "initial": 0,
+                                    "final": 127,
+                                    "range": {
+                                        "unit": "ANGLE",
+                                        "initial": 0,
+                                        "final": 360
+                                    }
+                                }, {
+                                    "name": "Counterclockwise gobo scroll, fast (128) to slow (189)",
+                                    "initial": 128,
+                                    "final": 189
+                                }, {
+                                    "name": "Stop at current position",
+                                    "initial": 190,
+                                    "final": 193
+                                }, {
+                                    "name": "Clockwise gobo scroll, slow (194) to fast (255) ",
+                                    "initial": 194,
+                                    "final": 255
+                                }],
+                                "addressOffset": 9
+                            }, {
+                                "name": "Prism",
+                                "type": "PRISM",
+                                "bounds": [{
+                                    "name": "No function",
+                                    "initial": 0,
+                                    "final": 127
+                                }, {
+                                    "name": "Prism effect",
+                                    "initial": 128,
+                                    "final": 255
+                                }],
+                                "addressOffset": 10
+                            }, {
+                                "name": "Macro Functions",
+                                "type": "FUNCTION",
+                                "bounds": [{
+                                    "name": "No function",
+                                    "initial": 0,
+                                    "final": 7
+                                }, {
+                                    "name": "Automatic movement 1",
+                                    "initial": 8,
+                                    "final": 23
+                                }, {
+                                    "name": "Automatic movement 2",
+                                    "initial": 24,
+                                    "final": 39
+                                }, {
+                                    "name": "Automatic movement 3",
+                                    "initial": 40,
+                                    "final": 55
+                                }, {
+                                    "name": "Automatic movement 4",
+                                    "initial": 56,
+                                    "final": 71
+                                }, {
+                                    "name": "Automatic movement 5",
+                                    "initial": 72,
+                                    "final": 87
+                                }, {
+                                    "name": "Automatic movement 6",
+                                    "initial": 88,
+                                    "final": 103
+                                }, {
+                                    "name": "Automatic movement 7",
+                                    "initial": 104,
+                                    "final": 119
+                                }, {
+                                    "name": "Automatic movement 8",
+                                    "initial": 120,
+                                    "final": 135
+                                }, {
+                                    "name": "Sound-active movement 1",
+                                    "initial": 136,
+                                    "final": 151
+                                }, {
+                                    "name": "Sound-active movement 2",
+                                    "initial": 152,
+                                    "final": 167
+                                }, {
+                                    "name": "Sound-active movement 3",
+                                    "initial": 168,
+                                    "final": 183
+                                }, {
+                                    "name": "Sound-active movement 4",
+                                    "initial": 184,
+                                    "final": 199
+                                }, {
+                                    "name": "Sound-active movement 5",
+                                    "initial": 200,
+                                    "final": 215
+                                }, {
+                                    "name": "Sound-active movement 6",
+                                    "initial": 216,
+                                    "final": 231
+                                }, {
+                                    "name": "Sound-active movement 7",
+                                    "initial": 232,
+                                    "final": 247
+                                }, {
+                                    "name": "Sound-active movement 8",
+                                    "initial": 248,
+                                    "final": 255
+                                }],
+                                "addressOffset": 11
+                            }, {
+                                "name": "Control Functions",
+                                "type": "FUNCTION",
+                                "bounds": [{
+                                    "name": "No function",
+                                    "initial": 0,
+                                    "final": 49
+                                }, {
+                                    "name": "Blackout during pan/tilt or colour/gobo change",
+                                    "initial": 50,
+                                    "final": 59
+                                }, {
+                                    "name": "Disable blackout during pan/tilt or colour/gobo change",
+                                    "initial": 60,
+                                    "final": 69
+                                }, {
+                                    "name": "Blackout during pan/tilt",
+                                    "initial": 70,
+                                    "final": 79
+                                }, {
+                                    "name": "Disable blackout during pan/tilt",
+                                    "initial": 80,
+                                    "final": 89
+                                }, {
+                                    "name": "Blackout during colour change",
+                                    "initial": 90,
+                                    "final": 99
+                                }, {
+                                    "name": "Disable blackout during colour change",
+                                    "initial": 100,
+                                    "final": 109
+                                }, {
+                                    "name": "Blackout during gobo change",
+                                    "initial": 110,
+                                    "final": 119
+                                }, {
+                                    "name": "Disable blackout during gobo change",
+                                    "initial": 120,
+                                    "final": 129
+                                }, {
+                                    "name": "No function",
+                                    "initial": 130,
+                                    "final": 139
+                                }, {
+                                    "name": "Reset pan/tilt",
+                                    "initial": 140,
+                                    "final": 149
+                                }, {
+                                    "name": "Reset colour/gobo/prism",
+                                    "initial": 150,
+                                    "final": 169
+                                }, {
+                                    "name": "No function",
+                                    "initial": 170,
+                                    "final": 199
+                                }, {
+                                    "name": "Reset all",
+                                    "initial": 200,
+                                    "final": 209
+                                }, {
+                                    "name": "No function",
+                                    "initial": 210,
+                                    "final": 255
+                                }],
+                                "addressOffset": 12
+                            }],
+                            "channelModes": [{
+                                "count": 13,
+                                "channels": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+                            }, {
+                                "count": 7,
+                                "channels": [0, 2, 6, 7, 8, 9, 10]
+                            }],
+                            "options": {
+                                "channelMode": 0
+                            }
+                        }
+                    },
+                    "addressChannels": [{
+                        "name": "Prism",
+                        "type": "PRISM",
+                        "bounds": [{
+                            "name": "No function",
+                            "initial": 0,
+                            "final": 127
+                        }, {
+                            "name": "Prism effect",
+                            "initial": 128,
+                            "final": 255
+                        }],
+                        "addressOffset": 10
+                    }]
+                }]
+            ]
+        }],
+        ["FUNCTION", {
+            "dataType": "Map",
+            "value": [
+                ["fxtr-7b5c1360-2765-4e51-b9ad-9221d85feea1-0", {
+                    "channelData": {
+                        "channel": 1,
+                        "dmxAddressRange": {
+                            "initial": 1,
+                            "final": 13
+                        },
+                        "name": "Gesture Spot 300",
+                        "profile": {
+                            "id": "fxtr-7b5c1360-2765-4e51-b9ad-9221d85feea1",
+                            "brand": "brnd-edaa91eb-cded-4825-9c3f-fe919cb641b7",
+                            "name": "Gesture Spot 300",
+                            "productPage": "https://www.marqlighting.com/products/view/gesture-spot-300",
+                            "tags": ["MOVER", "SPOT", "COLOUR-SCROLLER", "GOBO-SCROLLER", "PRISM"],
+                            "channels": [{
+                                "name": "Pan",
+                                "type": "POS-PAN",
+                                "range": {
+                                    "unit": "ANGLE",
+                                    "initial": 0,
+                                    "final": 540
+                                },
+                                "addressOffset": 0
+                            }, {
+                                "name": "Fine Pan",
+                                "type": "POS-PAN-FINE",
+                                "range": {
+                                    "unit": "PERCENT",
+                                    "initial": 0,
+                                    "final": 100
+                                },
+                                "addressOffset": 1
+                            }, {
+                                "name": "Tilt",
+                                "type": "POS-TILT",
+                                "range": {
+                                    "unit": "ANGLE",
+                                    "initial": 0,
+                                    "final": 270
+                                },
+                                "addressOffset": 2
+                            }, {
+                                "name": "Fine Tilt",
+                                "type": "POS-TILT-FINE",
+                                "range": {
+                                    "unit": "PERCENT",
+                                    "initial": 0,
+                                    "final": 100
+                                },
+                                "addressOffset": 3
+                            }, {
+                                "name": "Pan/Tilt Speed",
+                                "type": "FUNCTION",
+                                "range": {
+                                    "unit": "MAGNITUDE",
+                                    "initial": 1,
+                                    "final": 0
+                                },
+                                "addressOffset": 4
+                            }, {
+                                "name": "Dimmer",
+                                "type": "INTENSITY",
+                                "range": {
+                                    "unit": "MAGNITUDE",
+                                    "initial": 0,
+                                    "final": 1
+                                },
+                                "addressOffset": 5
+                            }, {
+                                "name": "Shutter",
+                                "type": "SHUTTER",
+                                "bounds": [{
+                                    "name": "Close",
+                                    "initial": 0,
+                                    "final": 3
+                                }, {
+                                    "name": "Open",
+                                    "initial": 4,
+                                    "final": 7
+                                }, {
+                                    "name": "Strobe Slow->Fast",
+                                    "initial": 8,
+                                    "final": 76,
+                                    "range": {
+                                        "unit": "MAGNITUDE",
+                                        "initial": 0,
+                                        "final": 1
+                                    }
+                                }, {
+                                    "name": "Pulse Slow->Fast",
+                                    "initial": 77,
+                                    "final": 145,
+                                    "range": {
+                                        "unit": "MAGNITUDE",
+                                        "initial": 0,
+                                        "final": 1
+                                    }
+                                }, {
+                                    "name": "Random Strobe Slow->Fast",
+                                    "initial": 146,
+                                    "final": 215,
+                                    "range": {
+                                        "unit": "MAGNITUDE",
+                                        "initial": 0,
+                                        "final": 1
+                                    }
+                                }, {
+                                    "name": "Open",
+                                    "initial": 216,
+                                    "final": 255
+                                }],
+                                "addressOffset": 6
+                            }, {
+                                "name": "Colour Wheel",
+                                "type": "COLOUR-WHEEL",
+                                "bounds": [{
+                                    "name": "White",
+                                    "initial": 0,
+                                    "final": 6
+                                }, {
+                                    "name": "Red",
+                                    "initial": 7,
+                                    "final": 13
+                                }, {
+                                    "name": "Orange",
+                                    "initial": 14,
+                                    "final": 20
+                                }, {
+                                    "name": "Green",
+                                    "initial": 21,
+                                    "final": 27
+                                }, {
+                                    "name": "Light Blue",
+                                    "initial": 28,
+                                    "final": 34
+                                }, {
+                                    "name": "Purple",
+                                    "initial": 35,
+                                    "final": 41
+                                }, {
+                                    "name": "Yellow",
+                                    "initial": 42,
+                                    "final": 48
+                                }, {
+                                    "name": "Blue",
+                                    "initial": 49,
+                                    "final": 55
+                                }, {
+                                    "name": "Pink",
+                                    "initial": 56,
+                                    "final": 63
+                                }, {
+                                    "name": "colour indexing",
+                                    "initial": 64,
+                                    "final": 127
+                                }, {
+                                    "name": "Clockwise Fast->Slow",
+                                    "initial": 128,
+                                    "final": 189,
+                                    "range": {
+                                        "unit": "MAGNITUDE",
+                                        "initial": 1,
+                                        "final": 0
+                                    }
+                                }, {
+                                    "name": "Stop",
+                                    "initial": 190,
+                                    "final": 193
+                                }, {
+                                    "name": "Counterclockwise Slow->Fast",
+                                    "initial": 194,
+                                    "final": 255,
+                                    "range": {
+                                        "unit": "MAGNITUDE",
+                                        "initial": 0,
+                                        "final": 1
+                                    }
+                                }],
+                                "addressOffset": 7
+                            }, {
+                                "name": "Gobo",
+                                "type": "GOBO-WHEEL",
+                                "bounds": [{
+                                    "name": "Open/white",
+                                    "initial": 0,
+                                    "final": 7
+                                }, {
+                                    "name": "Gobo 1",
+                                    "initial": 8,
+                                    "final": 15
+                                }, {
+                                    "name": "Gobo 2",
+                                    "initial": 16,
+                                    "final": 23
+                                }, {
+                                    "name": "Gobo 3",
+                                    "initial": 24,
+                                    "final": 31
+                                }, {
+                                    "name": "Gobo 4",
+                                    "initial": 32,
+                                    "final": 39
+                                }, {
+                                    "name": "Gobo 5",
+                                    "initial": 40,
+                                    "final": 47
+                                }, {
+                                    "name": "Gobo 6",
+                                    "initial": 48,
+                                    "final": 55
+                                }, {
+                                    "name": "Gobo 7",
+                                    "initial": 56,
+                                    "final": 63
+                                }, {
+                                    "name": "Open spot shaking, slow (064) to fast (071)",
+                                    "initial": 64,
+                                    "final": 71
+                                }, {
+                                    "name": "Gobo 1 shaking, slow (072) to fast (079)",
+                                    "initial": 72,
+                                    "final": 79
+                                }, {
+                                    "name": "Gobo 2 shaking, slow (080) to fast (087)",
+                                    "initial": 80,
+                                    "final": 87
+                                }, {
+                                    "name": "Gobo 3 shaking, slow (088) to fast (095)",
+                                    "initial": 88,
+                                    "final": 95
+                                }, {
+                                    "name": "Gobo 4 shaking, slow (096) to fast (103)",
+                                    "initial": 96,
+                                    "final": 103
+                                }, {
+                                    "name": "Gobo 5 shaking, slow (104) to fast (111)",
+                                    "initial": 104,
+                                    "final": 111
+                                }, {
+                                    "name": "Gobo 6 shaking, slow (112) to fast (119)",
+                                    "initial": 112,
+                                    "final": 119
+                                }, {
+                                    "name": "Gobo 7 shaking, slow (120) to fast (127)",
+                                    "initial": 120,
+                                    "final": 127
+                                }, {
+                                    "name": "Counterclockwise gobo change, fast (128) to slow (189)",
+                                    "initial": 128,
+                                    "final": 189
+                                }, {
+                                    "name": "Stop at current position",
+                                    "initial": 190,
+                                    "final": 193
+                                }, {
+                                    "name": "Clockwise gobo change, slow (194) to fast (255) ",
+                                    "initial": 194,
+                                    "final": 255
+                                }],
+                                "addressOffset": 8
+                            }, {
+                                "name": "Gobo Rotation",
+                                "type": "GOBO-WHEEL-MODIFIER",
+                                "bounds": [{
+                                    "name": "Indexed position",
+                                    "initial": 0,
+                                    "final": 127,
+                                    "range": {
+                                        "unit": "ANGLE",
+                                        "initial": 0,
+                                        "final": 360
+                                    }
+                                }, {
+                                    "name": "Counterclockwise gobo scroll, fast (128) to slow (189)",
+                                    "initial": 128,
+                                    "final": 189
+                                }, {
+                                    "name": "Stop at current position",
+                                    "initial": 190,
+                                    "final": 193
+                                }, {
+                                    "name": "Clockwise gobo scroll, slow (194) to fast (255) ",
+                                    "initial": 194,
+                                    "final": 255
+                                }],
+                                "addressOffset": 9
+                            }, {
+                                "name": "Prism",
+                                "type": "PRISM",
+                                "bounds": [{
+                                    "name": "No function",
+                                    "initial": 0,
+                                    "final": 127
+                                }, {
+                                    "name": "Prism effect",
+                                    "initial": 128,
+                                    "final": 255
+                                }],
+                                "addressOffset": 10
+                            }, {
+                                "name": "Macro Functions",
+                                "type": "FUNCTION",
+                                "bounds": [{
+                                    "name": "No function",
+                                    "initial": 0,
+                                    "final": 7
+                                }, {
+                                    "name": "Automatic movement 1",
+                                    "initial": 8,
+                                    "final": 23
+                                }, {
+                                    "name": "Automatic movement 2",
+                                    "initial": 24,
+                                    "final": 39
+                                }, {
+                                    "name": "Automatic movement 3",
+                                    "initial": 40,
+                                    "final": 55
+                                }, {
+                                    "name": "Automatic movement 4",
+                                    "initial": 56,
+                                    "final": 71
+                                }, {
+                                    "name": "Automatic movement 5",
+                                    "initial": 72,
+                                    "final": 87
+                                }, {
+                                    "name": "Automatic movement 6",
+                                    "initial": 88,
+                                    "final": 103
+                                }, {
+                                    "name": "Automatic movement 7",
+                                    "initial": 104,
+                                    "final": 119
+                                }, {
+                                    "name": "Automatic movement 8",
+                                    "initial": 120,
+                                    "final": 135
+                                }, {
+                                    "name": "Sound-active movement 1",
+                                    "initial": 136,
+                                    "final": 151
+                                }, {
+                                    "name": "Sound-active movement 2",
+                                    "initial": 152,
+                                    "final": 167
+                                }, {
+                                    "name": "Sound-active movement 3",
+                                    "initial": 168,
+                                    "final": 183
+                                }, {
+                                    "name": "Sound-active movement 4",
+                                    "initial": 184,
+                                    "final": 199
+                                }, {
+                                    "name": "Sound-active movement 5",
+                                    "initial": 200,
+                                    "final": 215
+                                }, {
+                                    "name": "Sound-active movement 6",
+                                    "initial": 216,
+                                    "final": 231
+                                }, {
+                                    "name": "Sound-active movement 7",
+                                    "initial": 232,
+                                    "final": 247
+                                }, {
+                                    "name": "Sound-active movement 8",
+                                    "initial": 248,
+                                    "final": 255
+                                }],
+                                "addressOffset": 11
+                            }, {
+                                "name": "Control Functions",
+                                "type": "FUNCTION",
+                                "bounds": [{
+                                    "name": "No function",
+                                    "initial": 0,
+                                    "final": 49
+                                }, {
+                                    "name": "Blackout during pan/tilt or colour/gobo change",
+                                    "initial": 50,
+                                    "final": 59
+                                }, {
+                                    "name": "Disable blackout during pan/tilt or colour/gobo change",
+                                    "initial": 60,
+                                    "final": 69
+                                }, {
+                                    "name": "Blackout during pan/tilt",
+                                    "initial": 70,
+                                    "final": 79
+                                }, {
+                                    "name": "Disable blackout during pan/tilt",
+                                    "initial": 80,
+                                    "final": 89
+                                }, {
+                                    "name": "Blackout during colour change",
+                                    "initial": 90,
+                                    "final": 99
+                                }, {
+                                    "name": "Disable blackout during colour change",
+                                    "initial": 100,
+                                    "final": 109
+                                }, {
+                                    "name": "Blackout during gobo change",
+                                    "initial": 110,
+                                    "final": 119
+                                }, {
+                                    "name": "Disable blackout during gobo change",
+                                    "initial": 120,
+                                    "final": 129
+                                }, {
+                                    "name": "No function",
+                                    "initial": 130,
+                                    "final": 139
+                                }, {
+                                    "name": "Reset pan/tilt",
+                                    "initial": 140,
+                                    "final": 149
+                                }, {
+                                    "name": "Reset colour/gobo/prism",
+                                    "initial": 150,
+                                    "final": 169
+                                }, {
+                                    "name": "No function",
+                                    "initial": 170,
+                                    "final": 199
+                                }, {
+                                    "name": "Reset all",
+                                    "initial": 200,
+                                    "final": 209
+                                }, {
+                                    "name": "No function",
+                                    "initial": 210,
+                                    "final": 255
+                                }],
+                                "addressOffset": 12
+                            }],
+                            "channelModes": [{
+                                "count": 13,
+                                "channels": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+                            }, {
+                                "count": 7,
+                                "channels": [0, 2, 6, 7, 8, 9, 10]
+                            }],
+                            "options": {
+                                "channelMode": 0
+                            }
+                        }
+                    },
+                    "addressChannels": [{
+                        "name": "Pan/Tilt Speed",
+                        "type": "FUNCTION",
+                        "range": {
+                            "unit": "MAGNITUDE",
+                            "initial": 1,
+                            "final": 0
+                        },
+                        "addressOffset": 4
+                    }, {
+                        "name": "Macro Functions",
+                        "type": "FUNCTION",
+                        "bounds": [{
+                            "name": "No function",
+                            "initial": 0,
+                            "final": 7
+                        }, {
+                            "name": "Automatic movement 1",
+                            "initial": 8,
+                            "final": 23
+                        }, {
+                            "name": "Automatic movement 2",
+                            "initial": 24,
+                            "final": 39
+                        }, {
+                            "name": "Automatic movement 3",
+                            "initial": 40,
+                            "final": 55
+                        }, {
+                            "name": "Automatic movement 4",
+                            "initial": 56,
+                            "final": 71
+                        }, {
+                            "name": "Automatic movement 5",
+                            "initial": 72,
+                            "final": 87
+                        }, {
+                            "name": "Automatic movement 6",
+                            "initial": 88,
+                            "final": 103
+                        }, {
+                            "name": "Automatic movement 7",
+                            "initial": 104,
+                            "final": 119
+                        }, {
+                            "name": "Automatic movement 8",
+                            "initial": 120,
+                            "final": 135
+                        }, {
+                            "name": "Sound-active movement 1",
+                            "initial": 136,
+                            "final": 151
+                        }, {
+                            "name": "Sound-active movement 2",
+                            "initial": 152,
+                            "final": 167
+                        }, {
+                            "name": "Sound-active movement 3",
+                            "initial": 168,
+                            "final": 183
+                        }, {
+                            "name": "Sound-active movement 4",
+                            "initial": 184,
+                            "final": 199
+                        }, {
+                            "name": "Sound-active movement 5",
+                            "initial": 200,
+                            "final": 215
+                        }, {
+                            "name": "Sound-active movement 6",
+                            "initial": 216,
+                            "final": 231
+                        }, {
+                            "name": "Sound-active movement 7",
+                            "initial": 232,
+                            "final": 247
+                        }, {
+                            "name": "Sound-active movement 8",
+                            "initial": 248,
+                            "final": 255
+                        }],
+                        "addressOffset": 11
+                    }, {
+                        "name": "Control Functions",
+                        "type": "FUNCTION",
+                        "bounds": [{
+                            "name": "No function",
+                            "initial": 0,
+                            "final": 49
+                        }, {
+                            "name": "Blackout during pan/tilt or colour/gobo change",
+                            "initial": 50,
+                            "final": 59
+                        }, {
+                            "name": "Disable blackout during pan/tilt or colour/gobo change",
+                            "initial": 60,
+                            "final": 69
+                        }, {
+                            "name": "Blackout during pan/tilt",
+                            "initial": 70,
+                            "final": 79
+                        }, {
+                            "name": "Disable blackout during pan/tilt",
+                            "initial": 80,
+                            "final": 89
+                        }, {
+                            "name": "Blackout during colour change",
+                            "initial": 90,
+                            "final": 99
+                        }, {
+                            "name": "Disable blackout during colour change",
+                            "initial": 100,
+                            "final": 109
+                        }, {
+                            "name": "Blackout during gobo change",
+                            "initial": 110,
+                            "final": 119
+                        }, {
+                            "name": "Disable blackout during gobo change",
+                            "initial": 120,
+                            "final": 129
+                        }, {
+                            "name": "No function",
+                            "initial": 130,
+                            "final": 139
+                        }, {
+                            "name": "Reset pan/tilt",
+                            "initial": 140,
+                            "final": 149
+                        }, {
+                            "name": "Reset colour/gobo/prism",
+                            "initial": 150,
+                            "final": 169
+                        }, {
+                            "name": "No function",
+                            "initial": 170,
+                            "final": 199
+                        }, {
+                            "name": "Reset all",
+                            "initial": 200,
+                            "final": 209
+                        }, {
+                            "name": "No function",
+                            "initial": 210,
+                            "final": 255
+                        }],
+                        "addressOffset": 12
+                    }]
+                }]
+            ]
+        }],
+        ["UNKNOWN", {
+            "dataType": "Map",
+            "value": []
+        }]
+    ]
+}

@@ -1,7 +1,7 @@
-import { Serializable, JsonProperty } from "typescript-json-serializer";
+import { JsonObject, JsonProperty } from "typescript-json-serializer";
 import { ShowData } from "./ShowFile";
 
-@Serializable()
+@JsonObject()
 export class Save {
     @JsonProperty()
     shows: ShowData[];

@@ -1,118 +1,72 @@
+import { v4 } from "uuid";
 import { BrowserWindow, ipcMain, IpcMainEvent } from "electron";
 import * as remote from "@electron/remote/main";
-import path = require("path");
 
-export interface PromptOptions {
-	width: number;
-	height: number;
-	title: string;
-	description: string;
-	icon: string;
-	alwaysOnTop?: boolean;
-
-	label: string;
-	inputType?:
-		| "button"
-		| "checkbox"
-		| "color"
-		| "date"
-		| "datetime-local"
-		| "email"
-		| "file"
-		| "hidden"
-		| "image"
-		| "month"
-		| "number"
-		| "password"
-		| "range"
-		| "search"
-		| "tel"
-		| "text"
-		| "time"
-		| "url"
-		| "week";
-	defaultValue?: string;
-}
-
-export function prompt(options: PromptOptions, parentWindow?: BrowserWindow) {
-	return new Promise<Array<string>>((resolve, reject) => {
-		const id = `${Date.now()}-${Math.random()}`;
-        console.log(`Created Prompt with ID: ${id}`);
-
-		let promptWindow = new BrowserWindow({
-			width: options.width,
-			height: options.height,
-			minWidth: options.width,
-			minHeight: options.height,
-			resizable: false,
-			minimizable: false,
-			fullscreenable: false,
-			maximizable: false,
+export const createPromptWindow = (parent: BrowserWindow, file: string, options: any) =>
+	new Promise((resolve, reject) => {
+		const id = v4();
+		let window = new BrowserWindow({
+			parent,
+			modal: true,
 			show: false,
-			parent: parentWindow,
-			skipTaskbar: true,
-			alwaysOnTop: options.alwaysOnTop,
-			modal: parentWindow ? true : false,
-			title: options.title,
-			icon:  path.join(__dirname, options.icon) || undefined,
 			webPreferences: {
-				preload: __dirname + "/prompt_preload.js"
-			}
+				preload: __dirname + "/prompts/prompt_preload.js"
+			},
+			frame: false,
+			alwaysOnTop: false
 		});
 
-		remote.enable(promptWindow.webContents);
+		window.setMenu(null);
+		window.setMenuBarVisibility(false);
+		// window.setAlwaysOnTop(true, "modal-panel");
+		remote.enable(window.webContents);
 
-		promptWindow.setMenu(null);
-		promptWindow.setMenuBarVisibility(false);
+		const getOptionsListener = (e: IpcMainEvent) => {
+			e.returnValue = options;
+		};
+
+		const postDataListener = (e: IpcMainEvent, data: any) => {
+			cleanup();
+			resolve(data);
+		};
+
+		const errorListener = (e: IpcMainEvent, err: Error) => {
+			cleanup();
+			reject(err);
+		};
+
+		const windowControlListener = (e: IpcMainEvent, instruction: string) => {
+			if (instruction == "close") {
+				cleanup();
+			}
+		};
 
 		const cleanup = () => {
-			console.log(`Prompt cleanup and close, ID: ${id}`);
 			ipcMain.removeListener("prompt-get-options:" + id, getOptionsListener);
 			ipcMain.removeListener("prompt-post-data:" + id, postDataListener);
 			ipcMain.removeListener("prompt-error:" + id, errorListener);
+			ipcMain.removeListener("prompt-window-control:" + id, windowControlListener);
 
-			if (promptWindow) {
-				promptWindow.close();
-				promptWindow = null;
+			if (window) {
+				window.close();
+				window = null;
 			}
-		};
-
-		const getOptionsListener = (event: IpcMainEvent) => {
-			event.returnValue = options;
-		};
-
-		const postDataListener = (event: IpcMainEvent, value: Array<string>) => {
-			resolve(value);
-			event.returnValue = null;
-			cleanup();
-		};
-
-		const unresponsiveListener = () => {
-			reject(new Error("Window was unresponsive"));
-			cleanup();
-		};
-
-		const errorListener = (event: IpcMainEvent, message: string) => {
-			reject(new Error(message));
-			event.returnValue = null;
-			cleanup();
 		};
 
 		ipcMain.on("prompt-get-options:" + id, getOptionsListener);
 		ipcMain.on("prompt-post-data:" + id, postDataListener);
 		ipcMain.on("prompt-error:" + id, errorListener);
-		promptWindow.on("unresponsive", unresponsiveListener);
+		ipcMain.on("prompt-window-control:" + id, windowControlListener);
 
-		promptWindow.on("closed", () => {
-			promptWindow = null;
+		window.once("ready-to-show", () => {
+			window.show();
+		});
+
+		window.once("closed", () => {
+			window = null;
 			cleanup();
-			resolve([]);
+			resolve(null);
 		});
 
-		promptWindow.once("ready-to-show", () => {
-			promptWindow.show();
-		});
-
-		promptWindow.loadFile("html/prompt.html", { hash: id });
+		window.loadFile("html/prompts/" + file + ".html", { hash: id });
 	});
-}

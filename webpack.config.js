@@ -1,8 +1,9 @@
 module.exports = {
 	entry: {
-		renderer: "./src/renderer/renderer.ts",
-		splash_renderer: "./src/renderer/splash_renderer.ts",
-		prompt_renderer: "./src/renderer/prompt_renderer.ts"
+		renderer: "./src/renderers/mainWindow/renderer.ts",
+		splash_renderer: "./src/renderers/splashWindow/renderer.ts",
+		prompt_patchAdd_renderer: "./src/renderers/prompts/patchAdd.ts",
+		prompt_textInput_renderer: "./src/renderers/prompts/textInput.ts"
 	},
 	output: {
 		filename: "[name].js",
@@ -17,7 +18,7 @@ module.exports = {
 				use: {
 					loader: "ts-loader",
 					options: {
-						configFile: "src/renderer/tsconfig.json"
+						configFile: "src/renderers/tsconfig.json"
 					}
 				},
 				exclude: /node_modules/

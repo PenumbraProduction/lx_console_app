@@ -1,201 +1,224 @@
-import { SerialPort } from "serialport";
-import { EventEmitter } from "node:events";
-import * as DMX from "../DMX";
-import * as ofl from "openfixturelibrary";
-import { Profile, PatchChannel, DmxAddressRange, FixtureChannel } from "openfixturelibrary/out/types";
-import {ChannelGroup} from "../types/Types";
-import {Cue} from "../DMX/Cue";
+import { ipcMain } from "electron";
+import {
+	Channel,
+	CuePaletteItem,
+	DefinedProfile,
+	Desk,
+	DmxAddressRange,
+	FixtureChannel,
+	FixtureChannelType,
+	GroupPaletteItem
+} from "lx_console_backend";
+import { Universe } from "dmxuniverse";
+import { getChannelTypeMappingForward, getChannelTypeMappingBackward } from "./OFLManager";
+import { mainWindow } from "./main";
 
-export const events = new EventEmitter();
+function ipcSend(channel: string, ...args: any[]) {
+	mainWindow.webContents.send(channel, ...args);
+}
 
-export type USB_Device = {
-	path: string; // path: 'COM9',
-	manufacturer: string; // manufacturer: 'FTDI',
-	serialNumber: string; // serialNumber: 'AL05O8JJ',
-	pnpId: string; // pnpId: 'FTDIBUS\\VID_0403+PID_6001+AL05O8JJA\\0000',
-	locationId: string; // locationId: undefined,
-	friendlyName?: string; // friendlyName: 'USB Serial Port (COM9)',
-	vendorId: string; // vendorId: '0403',
-	productId: string; // productId: '6001'
+const universe = new Universe();
+const desk = new Desk();
+
+export async function init() {
+	const port = await Universe.findInterfacePort().catch((e) => console.log(e));
+	if (port) await universe.init(port.path);
+}
+
+export async function close() {
+	await universe.close().catch((e) => console.log(e));
+}
+
+const serialport = {
+	opening: false,
+	isOpen: false
 };
 
-export const fixtureLibrary: Profile[] = ofl.fixtureList; // todo ability to live reload this
+universe.on("bufferUpdate", (data) => {
+	if (!data) data = universe.getUniverseData();
+	ipcSend("bufferUpdate", data);
+});
+universe.on("serialportOpening", () => {
+	serialport.opening = true;
+	ipcSend("serialportOpening");
+});
+universe.on("serialportOpeningFailed", (e: Error) => {
+	serialport.opening = false;
+	ipcSend("serialportOpeningFailed", e);
+});
+universe.on("serialportOpen", () => {
+	serialport.opening = false;
+	serialport.isOpen = true;
+	universe.on("serialportClose", serialportCloseListener);
+	ipcSend("serialportOpen");
+});
+function serialportCloseListener() {
+	serialport.isOpen = false;
+	ipcSend("serialportClose");
+}
+universe.on("serialportError", async (e: Error) => {
+	serialport.isOpen = false;
+	universe.off("serialportClose", serialportCloseListener);
+	await universe.close().catch((e) => console.log(e));
+	ipcSend("serialportError", e);
+});
 
-const patch: PatchChannel[] = [];
-const groups: Map<number, ChannelGroup> = new Map();
-const cues: Map<number, Cue> = new Map();
+ipcMain.on("retrySerialportInit", retrySerialportInit);
+ipcMain.on("serialportClose", () => close());
 
-export function findInterface(): Promise<USB_Device> {
-	return new Promise<USB_Device>((resolve, reject) => {
-		SerialPort.list().then((results) => {
-			for (let i = 0; i < results.length; i++) {
-				const item = results[i];
-				if (item.vendorId == "0403" && item.productId == "6001") return resolve(item);
-			}
-			reject("Failed to identify any valid connected devices");
-		});
+export async function retrySerialportInit() {
+	ipcSend("serialportRetry");
+	if (!serialport.opening && !serialport.isOpen) {
+		const port = await Universe.findInterfacePort().catch((e) => ipcSend("serialportRetryFail", e));
+		if (port) await universe.init(port.path);
+	}
+}
+
+// --------------- \\
+// Channel Control \\
+// --------------- \\
+
+ipcMain.on("updateChannelsIntensity", (e, data) => {
+	data.channels.forEach((ch: number) => {
+		const channel = desk.patch.getChannel(ch);
+		channel.setAddress(channel.getAddressFromType("INTENSITY"), data.value, true);
 	});
-}
+});
 
-export const universe = new DMX.Universe();
+ipcMain.on("updateChannelsAttribute", (e, data) => {
+	data.channels.forEach((ch: any) => {
+		const channel = desk.patch.getChannel(ch.channel.channel);
+		channel.setAddress(ch.addressOffset, ch.value, true);
+	});
+});
 
-export async function init(portName: string) {
-	await universe.init(portName);
-}
+ipcMain.on("clearProgrammer", () => {
+	desk.patch.clearProgrammerValues();
+});
 
-export async function exit() {
-	await universe.close();
-}
+// ----- \\
+// Patch \\
+// ----- \\
 
-export function getChannelsWithMode(profile: Profile, channelMode: number): Array<FixtureChannel> {
-	const channels: FixtureChannel[] = [];
-	profile.channelModes
-		.find((cm) => cm.count == channelMode)
-		.channels.forEach((ch) => {
-			channels.push(profile.channels[ch]);
-		});
-	return channels;
-}
+desk.patch.on("patchAdd", (channel: Channel) =>
+	ipcSend("patchAdd", {
+		channel: channel.id,
+		dmxAddressRange: channel.dmxAddressRange,
+		name: channel.name,
+		profile: { name: channel.profile.name, id: channel.profile.id }
+	})
+);
+desk.patch.on("patchDelete", (id: number | Set<number>) => ipcSend("patchDelete", id));
+desk.patch.on("patchMove", (id1: number, id2: number) => ipcSend("patchMove", id1, id2));
 
-export function getMainChannel(channel: number | PatchChannel) {
-	if (typeof channel == "number") channel = patch.find((pc) => pc.channel == channel);
+desk.patch.on("channelNameUpdate", (channel, name) => ipcSend("channelNameUpdate", channel, name));
 
-	const profile = findProfileById(channel.profile);
+desk.patch.on("addressUpdate", (address, value, channel, type) => {
+	universe.update(address, value.programmerVal >= 0 ? value.programmerVal : value.val);
+	ipcSend("addressUpdate", address, value, channel.id, type);
+});
 
-	const channels = getChannelsWithMode(profile, channel.profileSettings.channelMode);
-	let ch = channels.find((ch) => ch.type == "INTENSITY");
-	if (!ch) ch = channels.find((ch) => ch.type == "GENERIC");
-	return ch;
-}
+ipcMain.on("patchAdd", (e, id: number, profile: DefinedProfile, dmxAddressStart: number) =>
+	desk.patch.addChannel(id, profile, dmxAddressStart)
+);
+ipcMain.on("patchDelete", (e, id: number | Set<number>) =>
+	typeof id == "number" ? desk.patch.removeChannel(id) : desk.patch.removeChannels(id)
+);
+ipcMain.on("patchMove", (e, id1: number, id2: number) => desk.patch.moveChannel(id1, id2));
 
-export function getMainChannelOffset(channel: number | PatchChannel): number {
-	if (typeof channel == "number") channel = patch.find((pc) => pc.channel == channel);
+ipcMain.on("patchChannelRename", (e, channel, name) => desk.patch.getChannel(channel).setName(name));
 
-	if (!channel) {
-		console.error("No PatchChannel passed in...");
-		return -1;
-	}
+ipcMain.on("getChannel", (e, id: number) => (e.returnValue = Channel.serialize(desk.patch.getChannel(id))));
+ipcMain.on("getChannels", (e, ids: Set<number>) => {
+	const allowedData = new Map();
+	desk.patch.getChannels(ids).forEach((v, k) => {
+		allowedData.set(k, Channel.serialize(v));
+	});
+	e.returnValue = allowedData;
+});
 
-	const profile = findProfileById(channel.profile);
+ipcMain.on("getAllChannels", (e) => {
+	const allowedData = new Map();
+	desk.patch.getAllChannels().forEach((v, k) => {
+		allowedData.set(k, Channel.serialize(v));
+	});
+	e.returnValue = allowedData;
+});
 
-	const channels = getChannelsWithMode(profile, channel.profileSettings.channelMode);
-	let ch = channels.findIndex((ch) => ch.type == "INTENSITY");
-	if (ch < 0) ch = channels.findIndex((ch) => ch.type == "GENERIC");
-	return ch;
-}
+ipcMain.on("getChannelsByProfileType", (e, profileId, options?) => {
+	const channels = desk.patch.getChannelsByProfileType(profileId, options);
+	const allowedData = new Map();
+	channels.forEach((v, k) => {
+		allowedData.set(k, Channel.serialize(v));
+	});
+	e.returnValue = allowedData;
+});
 
-export function getAbsoluteMainAddress(channel: number | PatchChannel) {
-	if (typeof channel == "number") channel = patch.find((pc) => pc.channel == channel);
-	const offset = getMainChannelOffset(channel);
-	if (offset < 0) return;
-	return channel.address.initial + offset;
-}
+ipcMain.on("getChannelsMatchType", (e, channel: number, type: FixtureChannelType) => {
+	const ch = desk.patch.getChannel(channel);
+	if (getChannelTypeMappingForward(type) !== "UNKNOWN") return (e.returnValue = ch.getChannelsMatchType(type));
+	const types = getChannelTypeMappingBackward(type) as FixtureChannelType[];
+	const returnChannels: FixtureChannel[] = [];
+	types.forEach((type) => {
+		returnChannels.push(...ch.getChannelsMatchType(type));
+	});
+	e.returnValue = returnChannels;
+});
 
-export function updateChannelsSelect(d: {channels: Array<number>, value: number}) {
-	const mainChannels = d.channels.map((ch) => getAbsoluteMainAddress(ch));
-	universe.updateSelect(mainChannels, d.value);
-}
+ipcMain.on("getPatchChannelNumbers", (e) => (e.returnValue = desk.patch.getAllChannelNumbers()));
+ipcMain.on("getUsedDmxSpace", (e) => (e.returnValue = desk.patch.getUsedAddressSpace()));
 
-export function getFixtureLibraryBrands(): string[] {
-	const brandSet = new Set();
-	for (let i = 0; i < ofl.brandList.length; i++) {
-		brandSet.add({name: ofl.brandList[i].name, id: ofl.brandList[i].id});
-	}
-	return Array.from(brandSet) as Array<string>;
-}
+// ------ \\
+// Groups \\
+// ------ \\
 
-export function getFixtureLibraryNames(brand?: string): Profile[] {
-	if(!brand) return ofl.fixtureList;
-	return ofl.fixtureList.filter((f) => f.brand == brand);
-}
+desk.groups.on("itemAdd", (group: GroupPaletteItem) => ipcSend("groupAdd", GroupPaletteItem.serialize(group)));
+desk.groups.on("itemDelete", (id: number | Set<number>) => ipcSend("groupDelete", id));
+desk.groups.on("itemMove", (id1: number, id2: number) => ipcSend("groupMove", id1, id2));
 
-export function findProfileByName(brand: string, name: string): Profile {
-	return fixtureLibrary.find((p: Profile) => p.brand == brand && p.name == name);
-}
+ipcMain.on("groupAdd", (e, id: number, channels: Set<number>) =>
+	desk.groups.addItem(new GroupPaletteItem(desk.groups.getPaletteData(), id, channels))
+);
+ipcMain.on("groupDelete", (e, id: number | Set<number>) =>
+	typeof id == "number" ? desk.groups.removeItem(id) : desk.groups.removeItems(id)
+);
+ipcMain.on("groupMove", (e, id1: number, id2: number) => desk.groups.moveItem(id1, id2));
+ipcMain.on("getGroup", (e, id: number) => (e.returnValue = GroupPaletteItem.serialize(desk.groups.getItem(id))));
+ipcMain.on("getGroups", (e, ids: Set<number>) => {
+	const allowedData = new Map();
+	desk.groups.getItems(ids).forEach((v, k) => {
+		allowedData.set(k, GroupPaletteItem.serialize(v));
+	});
+	e.returnValue = allowedData;
+});
+ipcMain.on("getAllGroups", (e) => {
+	const allowedData = new Map();
+	desk.groups.getAllItems().forEach((v, k) => {
+		allowedData.set(k, GroupPaletteItem.serialize(v));
+	});
+	e.returnValue = allowedData;
+});
 
-export function findProfileById(id: string): Profile {
-	return fixtureLibrary.find((p: Profile) => p.id == id);
-}
+// ---- \\
+// Cues \\
+// ---- \\
 
-export function checkDmxAddressOverlap(r1: DmxAddressRange, r2: DmxAddressRange) {
-	return (
-		(r1.initial >= r2.initial && r1.initial <= r2.final) ||
-		(r1.final >= r2.initial && r1.final <= r2.final) ||
-		(r2.initial >= r1.initial && r2.initial <= r1.final) ||
-		(r2.final >= r1.initial && r2.final <= r1.final)
-	);
-}
+desk.cues.on("itemAdd", (cue: CuePaletteItem) => ipcSend("cueAdd", cue));
+desk.cues.on("itemDelete", (id: number | Set<number>) => ipcSend("cueDelete", id));
+desk.cues.on("itemMove", (id1: number, id2: number) => ipcSend("cueMove", id1, id2));
 
-export function checkPatchCollision(patchChannel: PatchChannel): string | void {
-	if (patchChannel.address.initial > patchChannel.address.final)
-		return "'initial' DMX address cannot be greater than 'final' DMX address";
-	if (patchChannel.address.initial < 1 || patchChannel.address.final > 512) return "Outside valid DMX range";
-	// if(patchChannel.address.final - patchChannel.address.initial + 1 < patchChannel.profileSettings.channelMode) return "DMX range cannot be less than channelMode count";
+// todo: work out how im going to store cue data and where that data is coming from
+// ipcMain.on("cueAdd", (e, cueOptions: CueOptions) =>
+// 	desk.cues.addCue(new Cue({ ...cueOptions, channelData: universe.getUniverseBuffer() }))
+// );
+ipcMain.on("cueDelete", (e, id: number | Set<number>) =>
+	typeof id == "number" ? desk.cues.removeItem(id) : desk.cues.removeItems(id)
+);
+ipcMain.on("cueMove", (e, id1: number, id2: number) => desk.cues.moveItem(id1, id2));
+ipcMain.on("getCue", (e, id: number) => (e.returnValue = desk.cues.getItem(id)));
+ipcMain.on("getCues", (e, ids: Set<number>) => (e.returnValue = desk.cues.getItems(ids)));
+ipcMain.on("getAllCues", (e) => (e.returnValue = desk.cues.getAllItems()));
 
-	for (const existingPatchChannel of patch) {
-		if (existingPatchChannel.channel == patchChannel.channel) return "Channel already in use";
-
-		if (checkDmxAddressOverlap(existingPatchChannel.address, patchChannel.address)) return "DMX Address Overlap";
-	}
-}
-
-export function patchFixture(patchChannel: PatchChannel): string | void {
-	const check = checkPatchCollision(patchChannel);
-	if (check) return check;
-	patch.push(patchChannel);
-	events.emit("updatePatch");
-}
-
-export function patchFixtures(data: PatchChannel[]): string | void {
-	for (const patchChannel of data) {
-		const check = checkPatchCollision(patchChannel);
-		if (check) {
-			return check;
-		}
-	}
-	patch.push(...data);
-	events.emit("updatePatch");
-}
-
-export function unpatchFixtures(data: {channels: Array<number>}) {
-	patch.splice(0, patch.length, ...patch.filter((pc) => !data.channels.includes(pc.channel)));
-	events.emit("updatePatch");
-}
-
-export function getPatchData(): PatchChannel[] {
-	return patch.sort((a, b) => a.channel - b.channel);
-}
-
-
-export function renameChannel(channel: number, name: string) {
-	const pcI = patch.findIndex((pc) => pc.channel == channel);
-	if(pcI < 0) return;
-	patch[pcI].name = name;
-	events.emit("updatePatch");
-}
-
-export function getGroups(): Map<number, ChannelGroup> {
-	return groups;
-}
-
-export function getGroup(id: number): ChannelGroup | undefined {
-	return groups.has(id) ? groups.get(id) : undefined;
-}
-
-export function setGroup(channelGroup: ChannelGroup) {
-	groups.set(channelGroup.id, channelGroup);
-	events.emit("groupsUpdate"); // todo only send updated group
-}
-
-export function getCues(): Map<number, Cue> {
-	return cues;
-}
-
-export function getCue(id: number): Cue | undefined {
-	return cues.has(id) ? cues.get(id) : undefined;
-}
-
-export function setCue(cue: Cue) {
-	cues.set(cue.id, cue);
-	events.emit("cuesUpdate");
-}
+// --------- \\
+// Playbacks \\
+// --------- \\

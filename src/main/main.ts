@@ -1,17 +1,28 @@
 import { app, BrowserWindow, dialog, MessageBoxOptions, ipcMain, Menu, MenuItem, shell } from "electron";
+import * as os from "os";
 import * as path from "path";
 import * as remote from "@electron/remote/main";
-import * as contextMenu from "electron-context-menu";
+import contextMenu from "electron-context-menu";
+import * as log from "electron-log";
+import { createPromptWindow } from "./PromptManager";
 
-import * as Prompt from "./promptManager";
+log.catchErrors({
+	showDialog: false,
+	onError(e) {
+		errorPopup(e);
+	}
+});
 
+import { updateProfileLibrary } from "./OFLManager";
 import * as DmxManager from "./dmxManager";
+import { wait } from "lx_console_backend";
 
-let mainWindow: BrowserWindow = null;
+export let mainWindow: BrowserWindow = null;
 const gotTheLock = app.requestSingleInstanceLock();
 let iconPath = "";
 
-//FORCE SINGLE INSTANCE
+app.disableHardwareAcceleration();
+
 if (!gotTheLock) {
 	app.quit();
 } else {
@@ -27,29 +38,19 @@ if (!gotTheLock) {
 	app.commandLine.appendSwitch("--autoplay-policy", "no-user-gesture-required");
 
 	app.on("window-all-closed", function () {
-		// On OS X it is common for applications and their menu bar
-		// to stay active until the user quits explicitly with Cmd + Q
 		if (process.platform !== "darwin") {
 			app.quit();
 		}
 	});
 
 	app.on("activate", function () {
-		// On OS X it"s common to re-create a window in the app when the
-		// dock icon is clicked and there are no other windows open.
 		if (BrowserWindow.getAllWindows().length === 0) {
 			createWindow();
 		}
 	});
 }
 
-// Disable navigation
-// https://www.electronjs.org/docs/latest/tutorial/security#13-disable-or-limit-navigation
-app.on("web-contents-created", (event, contents) => {
-	contents.on("will-navigate", (event) => {
-		event.preventDefault();
-	});
-});
+app.on("web-contents-created", (e, contents) => contents.on("will-navigate", (event) => event.preventDefault()));
 
 let splashWindow: BrowserWindow;
 
@@ -66,8 +67,6 @@ function createWindow() {
 	}
 
 	splashWindow = new BrowserWindow({
-		// width: 1200,
-		// height: 800,
 		width: 600,
 		height: 400,
 		webPreferences: {
@@ -81,18 +80,13 @@ function createWindow() {
 
 	splashWindow.loadFile("html/splash.html");
 
-	const splashWindowLoad = new Promise(function (resolve) {
-		splashWindow.webContents.once("dom-ready", resolve);
-	});
+	const splashWindowLoad = new Promise((resolve) => splashWindow.webContents.once("dom-ready", resolve));
 
 	splashWindow.on("show", () => {
-		// splashWindow.setFocusable(true);
 		splashWindow.focus();
 		splashWindow.focusOnWebView();
 	});
-	splashWindow.webContents.once("dom-ready", () => {
-		splashWindow.show();
-	});
+	splashWindow.webContents.once("dom-ready", () => splashWindow.show());
 
 	mainWindow = new BrowserWindow({
 		width: 1280,
@@ -108,8 +102,6 @@ function createWindow() {
 		title: "LX Console"
 	});
 
-	// Enable @electron/remote in preload so we can
-	// use the custom titlebar
 	remote.enable(mainWindow.webContents);
 	remote.initialize();
 
@@ -126,45 +118,16 @@ function createWindow() {
 		mainWindow.hide(); // ! for some reason main window shows itself again, put this here to hide it until we are ready
 
 		await splashWindowLoad;
-		// await new Promise<void>((resolve) => setTimeout(resolve, 3 * 1000));
+		splashWindow.webContents.send("updateLoadingJob", "Starting Desk Manager...");
 
-		updateSplashScreen("Trying to find interface through discovery...");
-
-		let dmxPortName;
-		try {
-			const { path } = await DmxManager.findInterface();
-			dmxPortName = path;
-			updateSplashScreen(`Discovered interface on port ${dmxPortName}...`);
-		} catch (e) {
-			console.log(e);
-			updateSplashScreen(e);
-			// await new Promise<void>((resolve) => setTimeout(resolve, 3 * 1000));
-		}
-
-		if (!dmxPortName) {
-			updateSplashScreen("Awaiting user input for interface port...");
-			try {
-				dmxPortName = await getUserInputInterfacePort();
-			} catch (e) {
-				updateSplashScreen(e);
-			}
-		}
-
-		if (dmxPortName) {
-			try {
-				updateSplashScreen(`Attempting to connect to interface on port ${dmxPortName}...`);
-				await DmxManager.init(dmxPortName);
-			} catch (e) {
-				console.log(e);
-				updateSplashScreen(e);
-				await new Promise((resolve) => setTimeout(resolve, 3 * 1000));
-				app.quit(); // ! not quitting??
-			}
-		} else {
-			updateSplashScreen("Could not find a port to use, continuing without DMX output");
-		}
+		await DmxManager.init().catch(async (e: Error) => {
+			splashWindow.webContents.send("updateLoadingJob", e.message, "error");
+			await wait(5000);
+			app.quit();
+		});
 
 		mainWindow.show();
+		mainWindow.webContents.openDevTools();
 		splashWindow.close();
 	});
 
@@ -172,89 +135,59 @@ function createWindow() {
 		e.preventDefault();
 		mainWindow.webContents.send("onClose");
 	});
-
-	// register keyboard shortcuts
-
-	// electron.globalShortcut.register("CommandOrControl+R", function() {
-	// 	console.log("Refreshed Page");
-	// 	mainWindow.reload();
-	// });
-
-	// Open the DevTools.
-	//mainWindow.webContents.openDevTools();
 }
 
-function updateSplashScreen(text: string) {
-	splashWindow.webContents.send("updateLoadingJob", text);
+function getMacOsVersion() {
+	const release = Number(os.release().split(".")[0]);
+	return "10." + (release - 4);
 }
 
-function getUserInputInterfacePort() {
-	return new Promise<string>((resolve, reject) => {
-		Prompt.prompt(
-			{
-				width: 500,
-				height: 250,
-				title: "Device Port",
-				description: "Could not find interface port through discovery, please enter a port name to use",
-				label: "Port Name",
-				defaultValue: "COM9",
-				icon: iconPath
-			},
-			splashWindow
-		)
-			.catch((e: Error) => errorPopup(e.name, e.message))
-			.then(async (response) => {
-				response = response as Array<string>;
-				if (!response.length || response[0] == null) {
-					reject("No valid User Input");
-				}
+function getOsVersion() {
+	let osName = os.type().replace("_", " ");
+	let osVersion = os.release();
 
-				// todo: portName checking, make sure it is a valid USB path
-				return resolve(response[0]);
-			});
-	});
+	if (osName === "Darwin") {
+		osName = "macOS";
+		osVersion = getMacOsVersion();
+	}
+
+	return osName + " " + osVersion;
 }
 
-function errorPopup(mes: string, det: string) {
-	const options: MessageBoxOptions = {
-		type: "error",
-		buttons: ["Ok"],
-		defaultId: 0,
-		cancelId: 0,
-		detail: det,
-		title: "Error",
-		message: mes
-	};
-	dialog.showMessageBox(mainWindow, options);
+function submitIssue(e: Error) {
+	const versions = { app: app.getName(), electron: "Electron " + process.versions.electron, os: getOsVersion() };
 
-	mainWindow.webContents.send("console.error", `${mes}\n${det}`);
+	const url =
+		"https://github.com/lordfarquhar/lx_console_app/issues/new" +
+		"?" +
+		new URLSearchParams({
+			title: `Error report for ${versions.app}`,
+			body: "Error:\n```\n" + e.stack + "\n```\n" + `OS: ${versions.os}`
+		}).toString();
+	shell.openExternal(url).catch(log.error);
+}
+
+function errorPopup(e: Error, explanation?: string) {
+	log.error(e);
+	mainWindow.webContents.send("console.error", e);
+	dialog
+		.showMessageBox({
+			title: explanation ? explanation : "An error occurred",
+			message: e.message,
+			detail: e.stack,
+			type: "error",
+			buttons: ["Ignore", "Report", "Exit"]
+		})
+		.then((result) => {
+			if (result.response === 1) submitIssue(e);
+			if (result.response === 2) app.quit();
+		});
 }
 
 function executeJavascriptInRenderer(js: string): void {
-	mainWindow.webContents.executeJavaScript(js + ";0").catch((reason) => {
-		errorPopup("Error executing javascript in renderer process", reason.toString());
+	mainWindow.webContents.executeJavaScript(js + ";0").catch((e) => {
+		errorPopup(e, "Error executing javascript in renderer process");
 	});
-}
-
-function openAboutWindow(): void {
-	const about = new BrowserWindow({
-		width: 680,
-		height: 450,
-		resizable: false,
-		webPreferences: {
-			preload: __dirname + "/about_preload.js"
-		},
-		icon: path.join(__dirname, iconPath),
-		title: "About LX Console",
-		parent: mainWindow,
-		modal: process.platform === "darwin" ? false : true,
-		show: false
-	});
-	about.webContents.once("dom-ready", () => {
-		about.show();
-	});
-	about.setMenu(null);
-	about.loadFile("html/about.html");
 }
 
 const normalMenu = new Menu();
@@ -262,11 +195,11 @@ normalMenu.append(
 	new MenuItem({
 		label: "File",
 		submenu: [
-			// {
-			// 	label: "New Notebook",
-			// 	accelerator: "CmdOrCtrl+N",
-			// 	click: () => mainWindow.webContents.send("newNotebook")
-			// },
+			{
+				label: "Save Show",
+				accelerator: "CmdOrCtrl+Shift+S",
+				click: () => mainWindow.webContents.send("saveShow")
+			},
 			{
 				type: "separator"
 			},
@@ -315,35 +248,25 @@ normalMenu.append(
 
 normalMenu.append(
 	new MenuItem({
-		label: "Help",
+		label: "Tools",
 		submenu: [
 			{
-				label: "Help",
-				accelerator: "F1",
-				click: () => shell.openExternal("")
-			},
-			{
-				label: "Website",
-				click: () => shell.openExternal("")
-			},
-			{
-				label: "What's New",
-				click: () => mainWindow.webContents.send("whatsNew")
-			},
-			{
-				label: "All Changelogs",
-				click: () => shell.openExternal("")
-			},
-			{
-				label: "Give Feedback (Google Forms)",
-				click: () => shell.openExternal("")
+				label: "Update Fixture Library",
+				// accelerator: "",
+				click: () => updateProfileLibrary()
 			},
 			{
 				type: "separator"
 			},
 			{
-				label: "About",
-				click: () => openAboutWindow()
+				label: "Connect External Interface",
+				// accelerator: "",
+				click: () => DmxManager.retrySerialportInit()
+			},
+			{
+				label: "Disconnect External Interface",
+				// accelerator: "",
+				click: () => DmxManager.close()
 			}
 		]
 	})
@@ -368,8 +291,16 @@ if (process.platform === "linux") {
     IPC Events
 */
 
-ipcMain.on("errorPopup", (event, args: string[]) => {
-	errorPopup(args[0], args[1]);
+ipcMain.on("errorPopup", (event, e: Error, explanation?: string) => {
+	errorPopup(e, explanation);
+});
+
+ipcMain.on("createPrompt", async (e, data) => {
+	try {
+		e.returnValue = await createPromptWindow(mainWindow, data.file, data.options);
+	} catch (err) {
+		e.returnValue = err;
+	}
 });
 
 ipcMain.on("maximize", () => {
@@ -386,11 +317,14 @@ ipcMain.on("restart", () => {
 });
 
 ipcMain.on("exit", async () => {
-	// todo some form of closing screen so user cannot interact with main window
-	await DmxManager.exit();
+	await DmxManager.close();
 
 	app.exit();
 });
+
+ipcMain.on("lock", () => {
+	console.log("LOCK CONSOLE");
+})
 
 ipcMain.on("defaultDataDir", (event) => {
 	event.returnValue = app.getPath("userData");
@@ -398,10 +332,6 @@ ipcMain.on("defaultDataDir", (event) => {
 
 ipcMain.on("isWindowMaximized", (event) => {
 	event.returnValue = mainWindow.isMaximized();
-});
-
-ipcMain.on("openAboutWindow", () => {
-	openAboutWindow();
 });
 
 ipcMain.on("errorLoadingData", (e, text: string) => {
@@ -420,56 +350,3 @@ ipcMain.on("errorLoadingData", (e, text: string) => {
 
 	app.exit();
 });
-
-ipcMain.on("changeSaveLocation", (e) => {
-	const filepaths = dialog.showOpenDialogSync(mainWindow, {
-		properties: ["openDirectory"]
-	});
-
-	if (filepaths !== undefined) {
-		e.returnValue = filepaths[0];
-	} else {
-		e.returnValue = "";
-	}
-});
-
-// ---------- //
-// DMX Stuffs //
-// ---------- //
-
-DmxManager.universe.on("bufferUpdate", () =>
-	mainWindow.webContents.send("universeBufferUpdate", Array.from(DmxManager.universe.getUniverseBuffer()).slice(1))
-);
-DmxManager.events.on("updatePatch", () => mainWindow.webContents.send("updatePatch", DmxManager.getPatchData()));
-DmxManager.events.on("groupsUpdate", () => mainWindow.webContents.send("groupsUpdate", DmxManager.getGroups()));
-DmxManager.events.on("cuesUpdate", () => mainWindow.webContents.send("cuesUpdate", DmxManager.getCues()));
-
-ipcMain.on("getUniverseData", (e) => (e.returnValue = DmxManager.universe.getUniverseBuffer()));
-
-ipcMain.on("updateUniverseIndividual", (e, d) => e.returnValue = DmxManager.universe.update(d[0].channel, d[0].value))
-ipcMain.on("updateUniverseEach", (e, d) => e.returnValue = DmxManager.universe.updateEach(d[0]));
-ipcMain.on("updateUniverseSelect", (e, d) => e.returnValue = DmxManager.universe.updateSelect(d[0].channels, d[0].value));
-ipcMain.on("updateChannelsSelect", (e, d) => e.returnValue = DmxManager.updateChannelsSelect(d[0]));
-
-ipcMain.on(
-	"findProfileByName",
-	(e, d) => (e.returnValue = DmxManager.findProfileByName(d[0].brand, d[0].name))
-);
-ipcMain.on("findProfileById", (e, d) => (e.returnValue = DmxManager.findProfileById(d[0])));
-ipcMain.on("getFixtureLibrary", (e) => (e.returnValue = DmxManager.fixtureLibrary));
-ipcMain.on("getFixtureLibraryBrands", (e) => (e.returnValue = DmxManager.getFixtureLibraryBrands()));
-ipcMain.on("getFixtureLibraryNames", (e, d) => (e.returnValue = DmxManager.getFixtureLibraryNames(d[0])));
-
-ipcMain.on("patchFixture", (e, d) => (e.returnValue = DmxManager.patchFixture(d[0])));
-ipcMain.on("patchFixtures", (e, d) => (e.returnValue = DmxManager.patchFixtures(d[0])));
-ipcMain.on("unpatchFixtures", (e, d) => (e.returnValue = DmxManager.unpatchFixtures(d[0])));
-ipcMain.on("getPatchData", (e) => (e.returnValue = DmxManager.getPatchData()));
-ipcMain.on("renameChannel", (e, d) => (e.returnValue = DmxManager.renameChannel(d[0].channel, d[0].name)));
-
-ipcMain.on("getGroups", (e) => (e.returnValue = DmxManager.getGroups()));
-ipcMain.on("getGroup", (e, d) => (e.returnValue = DmxManager.getGroup(d[0])));
-ipcMain.on("setGroup", (e, d) => (e.returnValue = DmxManager.setGroup(d[0])));
-
-ipcMain.on("getCues", (e) => (e.returnValue = DmxManager.getCues()));
-ipcMain.on("setCue", (e, d) => (e.returnValue = DmxManager.setCue(d[0])));
-ipcMain.on("getCue", (e, d) => (e.returnValue = DmxManager.getCue(d[0])));

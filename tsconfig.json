@@ -12,6 +12,7 @@
         "outDir": "out",
         "resolveJsonModule": true,
         "removeComments": true,
+        "esModuleInterop": true,
         "paths": {
             "*": [
                 "node_modules/*"
@@ -19,7 +20,7 @@
         }
     },
     "include": [
-        "src/main/*.ts",
-        "src/common/*.ts"
+        "src/main/**/*.ts",
+        "src/common/**/*.ts"
     ]
 }

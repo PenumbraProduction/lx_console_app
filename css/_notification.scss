@@ -15,16 +15,19 @@
 }
 
 .notification {
+    pointer-events: all;
     flex-basis: auto;
     width: 100%;
     height: fit-content;
     max-height: fit-content;
     font-size: 0.875rem;
-    background-color: rgba(255, 255, 255, 0.85);
-    background-clip: padding-box;
+    background-color: var(--accent-fg);
+    color: var(--accent-bg);
+    // background-clip: padding-box;
+    cursor: pointer;
     border: 1px solid rgba(0, 0, 0, 0.1);
     // box-shadow: 0 0.25rem 0.75rem rgb(0 0 0 / 10%);
-    opacity: 1;
+    opacity: 80%;
     border-radius: 0.25rem;
 }
 
@@ -33,14 +36,65 @@
     align-items: center;
     justify-content: space-between;
     padding: 0.25rem 0.75rem;
-    color: #6c757d;
-    background-color: rgba(255, 255, 255, 0.85);
-    background-clip: padding-box;
+    color: var(--accent-bg);
+    background-color: var(--accent-fg);
+    // background-clip: padding-box;
     border-bottom: 1px solid rgba(0, 0, 0, 0.05);
     border-top-left-radius: calc(0.25rem - 1px);
     border-top-right-radius: calc(0.25rem - 1px);
+
+    .notification-actions-container {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+    }
+
+    .notification-action {
+        cursor: pointer;
+
+        &:not(:last-child) {
+            margin-right: 0.8vw;
+        }
+    }
 }
 
 .notification-body {
-    padding: 0.75rem;
+    padding: 0.25rem 0.75rem;
+}
+
+.notification-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.25rem 0.75rem;
+    color: var(--accent-bg);
+    background-color: var(--accent-fg);
+    // background-clip: padding-box;
+    // border: 1px solid rgba(0, 0, 0, 0.1);
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    border-bottom-left-radius: calc(0.25rem - 1px);
+    border-bottom-right-radius: calc(0.25rem - 1px);
+
+    .notification-wait {
+        cursor: pointer;
+    }
+}
+
+.needs-attention {
+    animation: attention-bg-flash 1s ease 0s infinite;
+}
+
+@keyframes attention-bg-flash {
+    0% {
+        background-color: var(--main-bg);
+        color: var(--main-fg);
+    }
+    50% {
+        background-color: var(--hover-bg);
+        color: var(--hover-fg);
+    }
+    100% {
+        background-color: var(--main-bg);
+        color: var(--main-fg);
+    }
 }

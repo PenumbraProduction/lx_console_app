@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title></title>
+
+        <link rel="stylesheet" href="../../node_modules/bootstrap/dist/css/bootstrap.css">
+
+        <script src="../../node_modules/jquery/dist/jquery.min.js"></script>
+        <script src="../../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+        <script src="../../assets/vendor/fontawesome-web/js/all.min.js"></script>
+    </head>
+
+    <body>
+        <button onclick="prompt_textInput_renderer.windowInstruction('close')">Cancel</button>
+
+        <h4 class="modal-title">Enter Text</h4>
+
+        <div id="textInputModalMessage" class="modal-message bad"></div>
+        <form onsubmit="prompt_textInput_renderer.submitText()">
+            <input type="text" name="textInput" id="textInput"><br>
+
+            <input type="submit" value="Submit" id="textSubmit">
+        </form>
+
+        <script src="../../out/prompt_textInput_renderer.js"></script>
+    </body>
+
+</html>

@@ -1,9 +1,17 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent, shell, clipboard } from "electron";
 import * as fs from "fs";
+import * as util from "util";
 import * as remote from "@electron/remote";
 import { Titlebar, Color } from "@treverix/custom-electron-titlebar";
 import { compare } from "semver";
-import { deserialize } from "typescript-json-serializer";
+import { JsonSerializer, throwError } from "typescript-json-serializer";
+const jsonSerializer = new JsonSerializer({
+	errorCallback: throwError,
+	nullishPolicy: {
+		undefined: "allow",
+		null: "allow"
+	}
+});
 import { UserPrefs } from "../common/UserPrefs";
 import { Save } from "../common/Save";
 import { ShowData } from "../common/ShowFile";
@@ -39,15 +47,14 @@ export type MainAPI = {
 	getSave(): Save;
 	saveData(saveObj: Save): void;
 	loadPageData(fileName: string): ShowData;
-	savePage(page : ShowData) : void;
+	savePage(page: ShowData): void;
 	savePageData(fileName: string, docObject: { [key: string]: any }): void;
 	openSaveLocation(): void;
-	changeSaveLocation(): void;
-	revertToDefaultSaveLocation(): void;
-	openLink(link: "website" | "download" | "docs" | "changelogs" | "github" | "issues" | "feedback" | "feather"): void;
 
-	writeClipboard(text : string): void;
+	writeClipboard(text: string): void;
 	readClipboard(): string;
+
+	inspect(obj:string): string;
 };
 
 const api: MainAPI = {
@@ -60,11 +67,11 @@ const api: MainAPI = {
 	},
 
 	ipcSend: (channel: string, ...args: any[]): void => {
-		ipcRenderer.send(channel, args);
+		ipcRenderer.send(channel, ...args);
 	},
 
 	ipcSendSync: (channel: string, ...args: any[]): any => {
-		return ipcRenderer.sendSync(channel, args);
+		return ipcRenderer.sendSync(channel, ...args);
 	},
 
 	defaultSaveLocation: (): string => {
@@ -76,37 +83,42 @@ const api: MainAPI = {
 	},
 
 	getPrefs: (): UserPrefs => {
-		return deserialize<UserPrefs>(JSON.stringify(prefs), UserPrefs);
+		return jsonSerializer.deserializeObject<UserPrefs>(JSON.stringify(prefs), UserPrefs);
 	},
 
 	savePrefs: (prefsObj: UserPrefs): void => {
 		if (canSavePrefs == true) {
 			prefs = prefsObj;
 			fs.writeFileSync(defaultSaveLocation + "/prefs.json", JSON.stringify(prefs, null, 4), "utf-8");
+			fs.writeFileSync(defaultSaveLocation + "/prefs.json", JSON.stringify(jsonSerializer.serializeObject(prefs), null, 4), "utf-8");
 		}
 	},
 
 	getSave: (): Save => {
-		return deserialize<Save>(JSON.stringify(save), Save);
+		return jsonSerializer.deserializeObject<Save>(JSON.stringify(save), Save);
 	},
 
 	saveData: (saveObj: Save): void => {
 		if (canSaveData == true) {
 			save = saveObj;
-			fs.writeFileSync(saveLocation + "/save.json", JSON.stringify(save, null, 4), "utf-8");
+			// fs.writeFileSync(saveLocation + "/save.json", JSON.stringify(save, null, 4), "utf-8");
+			fs.writeFileSync(saveLocation + "/save.json", JSON.stringify(jsonSerializer.serializeObject(save), null, 4), "utf-8");
 		}
 	},
 
 	loadPageData: (fileName: string): ShowData => {
 		if (!fileName.includes("/") && !fileName.includes("\\")) {
 			if (fs.existsSync(saveLocation + "/notes/" + fileName)) {
-				return deserialize<ShowData>(fs.readFileSync(saveLocation + "/notes/" + fileName, "utf-8").toString(), ShowData);
+				return jsonSerializer.deserializeObject<ShowData>(
+					fs.readFileSync(saveLocation + "/notes/" + fileName, "utf-8").toString(),
+					ShowData
+				);
 			}
 		}
 		return null;
 	},
 
-	savePage: (page : ShowData): void => {
+	savePage: (page: ShowData): void => {
 		if (!page.skeleton.fileName.includes("/") && !page.skeleton.fileName.includes("\\") && canSaveData == true) {
 			fs.writeFileSync(saveLocation + "/notes/" + page.skeleton.fileName, JSON.stringify(page), "utf-8");
 		}
@@ -122,61 +134,16 @@ const api: MainAPI = {
 		if (isValidDir(saveLocation)) shell.openPath(saveLocation);
 	},
 
-	changeSaveLocation: (): void => {
-		const newLocation = ipcRenderer.sendSync("changeSaveLocation");
-		if (newLocation !== "") {
-			if (isValidDir(newLocation)) {
-				fs.writeFileSync(defaultSaveLocation + "/saveLocation.txt", newLocation, "utf-8");
-				ipcRenderer.send("restart");
-			}
-		}
-	},
-
-	revertToDefaultSaveLocation: (): void => {
-		fs.writeFileSync(defaultSaveLocation + "/saveLocation.txt", defaultSaveLocation, "utf-8");
-		ipcRenderer.send("restart");
-	},
-
-	openLink: (
-		link: "website" | "download" | "docs" | "changelogs" | "github" | "issues" | "feedback" | "feather" | "license"
-	): void => {
-		switch (link) {
-			case "website":
-				shell.openExternal("https://Noteworm.github.io/");
-				break;
-			case "download":
-				shell.openExternal("https://Noteworm.github.io/download/");
-				break;
-			case "docs":
-				shell.openExternal("https://Noteworm.github.io/docs/");
-				break;
-			case "changelogs":
-				shell.openExternal("https://Noteworm.github.io/updates/");
-				break;
-			case "github":
-				shell.openExternal("https://github.com/Noteworm/noteworm-client");
-				break;
-			case "issues":
-				shell.openExternal("https://github.com/Noteworm/noteworm-client/issues");
-				break;
-			case "feedback":
-				shell.openExternal("https://forms.gle/spa9b6EPwBfVs46YA");
-				break;
-			case "feather":
-				shell.openExternal("https://www.feathericons.com/");
-				break;
-			case "license":
-				shell.openExternal("https://creativecommons.org/licenses/by-nc/4.0/");
-				break;
-		}
-	},
-
-	writeClipboard(text : string) : void {
+	writeClipboard(text: string): void {
 		clipboard.writeText(text);
 	},
 
-	readClipboard() : string {
+	readClipboard(): string {
 		return clipboard.readText();
+	},
+
+	inspect(obj) {
+		return util.inspect(obj, {depth: null});
 	}
 };
 
@@ -185,7 +152,7 @@ const api: MainAPI = {
 if (fs.existsSync(defaultSaveLocation + "/prefs.json")) {
 	try {
 		const json = fs.readFileSync(defaultSaveLocation + "/prefs.json", "utf-8").toString();
-		prefs = deserialize<UserPrefs>(json, UserPrefs);
+		prefs = jsonSerializer.deserializeObject<UserPrefs>(json, UserPrefs);
 
 		canSavePrefs = true;
 	} catch (err) {
@@ -213,30 +180,9 @@ if (compare(version, prefs.lastUseVersion) == 1) {
 if (fs.existsSync(saveLocation + "/save.json")) {
 	const json = fs.readFileSync(saveLocation + "/save.json", "utf-8").toString();
 
-	// Check for old save
 	try {
-		const testObject = JSON.parse(json);
-		if (testObject["version"] === undefined) {
-			try {
-				save = convertOldSave(testObject);
-				canSaveData = true;
-			} catch (err) {
-				ipcRenderer.send(
-					"errorLoadingData",
-					`Your save.json file in '${saveLocation}' could not be converted to the new format. Check the save.json file for issues, and/or report this problem to the GitHub Issues page.\n\n${err}`
-				);
-			}
-		} else {
-			try {
-				save = deserialize<Save>(json, Save);
-				canSaveData = true;
-			} catch (err) {
-				ipcRenderer.send(
-					"errorLoadingData",
-					`Your save.json file in '${saveLocation}' could not be parsed. Check the save.json file for issues, and/or report this problem to the GitHub Issues page.\n\n${err}`
-				);
-			}
-		}
+		save = jsonSerializer.deserializeObject<Save>(json, Save);
+		canSaveData = true;
 	} catch (err) {
 		ipcRenderer.send(
 			"errorLoadingData",
@@ -246,32 +192,9 @@ if (fs.existsSync(saveLocation + "/save.json")) {
 
 	api.saveData(save);
 } else {
-	//TODO REMOVE
 	save = new Save();
-
 	canSaveData = true;
-
 	api.saveData(save);
-}
-
-if (!fs.existsSync(saveLocation + "/notes/")) {
-	fs.mkdirSync(saveLocation + "/notes/");
-}
-
-if (!fs.existsSync(defaultSaveLocation + "/userStyles.css")) {
-	fs.writeFileSync(
-		defaultSaveLocation + "/userStyles.css",
-		"/*\n    Enter custom CSS rules for Noteworm in this file.\n    Use Inspect Element in the DevTools (Ctrl-Shift-I) in Noteworm to find id's and classes.\n*/"
-	);
-}
-
-function convertOldSave(oldSave: any): Save {
-	const newSave = new Save();
-
-	// check old save number
-	// add old data to newSave object
-
-	return newSave;
 }
 
 function isValidDir(path: string): boolean {

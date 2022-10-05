@@ -1,0 +1,7 @@
+{
+    "typescript.tsdk": "node_modules\\typescript\\lib",
+    "cSpell.words": [
+        "dflt",
+        "openfixturelibrary"
+    ], // Use the TypeScript version that's installed in node_modules, not the one VS Code bundles
+}

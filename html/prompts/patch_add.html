@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title></title>
+
+        <link rel="stylesheet" href="../../node_modules/bootstrap/dist/css/bootstrap.css">
+
+        <script src="../../node_modules/jquery/dist/jquery.min.js"></script>
+        <script src="../../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+        <script src="../../assets/vendor/fontawesome-web/js/all.min.js"></script>
+    </head>
+
+    <body>
+        <button onclick="prompt_patchAdd_renderer.submitData()">Submit</button>
+
+        <button onclick="prompt_patchAdd_renderer.windowInstruction('close')">Cancel</button>
+
+        <h4 class="modal-title">Patch Fixtures</h4>
+
+        <div id="patchFixtureModalMessage" class="modal-message bad"></div>
+        <form onsubmit="prompt_patchAdd_renderer.patchFixtures()">
+            <label for="fixtureBrandSelect">Select Brand</label>
+            <select name="fixture-brand" id="fixtureBrandSelect"
+                    onchange="prompt_patchAdd_renderer.setPatchBrand()"></select><br>
+
+            <label for="fixtureTypeSelect">Select Fixture</label>
+            <select name="fixture-type" id="fixtureTypeSelect" onchange="prompt_patchAdd_renderer.setPatchType()"
+                    class="disabled" disabled></select><br>
+
+            <label for="fixtureChannelModeSelect">Channel Mode</label>
+            <select name="fixture-type" id="fixtureChannelModeSelect"
+                    onchange="prompt_patchAdd_renderer.setPatchChannelMode()" class="disabled" disabled></select><br>
+
+            <label for="numberOfFixtures">Number of Fixtures</label>
+            <input type="number" min=1 name="numberOfFixtures" id="numberOfFixtures"
+                   onchange="prompt_patchAdd_renderer.setPatchNumber()" class="disabled" disabled><br>
+
+            <label for="startDmxAddress">Starting DMX Address</label>
+            <input type="number" min=1 max=512 name="startDmxAddress" id="startDmxAddress"
+                   onchange="prompt_patchAdd_renderer.setPatchDmxInitial()" class="disabled" disabled><br>
+
+            <label for="dmxAddressOffset">DMX Offset</label>
+            <input type="number" min=1 max=512 name="dmxAddressOffset" id="dmxAddressOffset"
+                   onchange="prompt_patchAdd_renderer.setPatchDmxOffset()" class="disabled" disabled><br>
+
+            <label for="startChannel">Starting Channel</label>
+            <input type="number" min=1 name="startChannel" id="startChannel"
+                   onchange="prompt_patchAdd_renderer.setPatchStartChannel()"><br>
+
+            <input type="submit" value="Patch" id="patchSubmit" class="disabled" disabled>
+        </form>
+
+        <script src="../../out/prompt_patchAdd_renderer.js"></script>
+    </body>
+
+</html>
