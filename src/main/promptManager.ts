@@ -19,6 +19,8 @@ export const createPromptWindow = (parent: BrowserWindow, file: string, options:
 		const cursorScreenPoint = screen.getCursorScreenPoint();
 		const screenToUse = screen.getDisplayNearestPoint(cursorScreenPoint);
 		window.setBounds({
+			x: screenToUse.bounds.x,
+			y: screenToUse.bounds.y,
 			width: screenToUse.workAreaSize.width * (3 / 4),
 			height: screenToUse.workAreaSize.height * (3 / 4)
 		});

@@ -229,6 +229,17 @@
     margin-top: 2vh;
 }
 
+.layout-row {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.layout-col {
+    flex-basis: 0;
+    flex-grow: 1;
+    max-width: 100%;
+}
+
 .feather {
     width: var(--feather-size);
     height: var(--feather-size);

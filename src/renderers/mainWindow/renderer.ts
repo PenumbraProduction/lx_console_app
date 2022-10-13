@@ -1009,6 +1009,7 @@ window.addEventListener("keydown", (e: KeyboardEvent) => {
 	if (key_l == "-") return cli.addToken("-");
 
 	if (key_l == "d") return setSelectedChannels(new Set());
+	if (key_l == "a") return cli.addToken("Add");
 	if (key_l == "p") return cli.addToken("Patch");
 	if (key_l == "r") return cli.addToken("Record");
 	if (key_l == "u") return cli.addToken("Update");
@@ -1020,7 +1021,6 @@ window.addEventListener("keydown", (e: KeyboardEvent) => {
 
 	if (e.key == ControlKey.SPACE) cli.addToken();
 	if (Object.values(NumericalKey).includes(e.key)) cli.addTokenPart(e.key);
-	// if (Object.values(AlphabeticalKey).includes(e.key)) cli.addTokenPart(e.key);
 });
 
 window.addEventListener("keyup", (e: KeyboardEvent) => {
