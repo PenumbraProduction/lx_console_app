@@ -18,7 +18,7 @@
 
     <body style="height: 100%">
         <div id="main">
-            <div id="sidebar">
+            <div id="sidebar" class="scroll-enabled">
                 <div id="sidebar-main" class="sidebar-section">
                     <li class="sidebar-item sidebar-link" data-click-action="page" data-links-to="Home">
                         <span><i data-feather="home"></i></span>
@@ -125,6 +125,11 @@
                         <input type="color" id="settingsAccentBgColor">
                         <p>Main Color</p>
                         <input type="color" id="settingsMainBgColor">
+
+                        <label class="toggle">
+                            <input type="checkbox">
+                            <span class="slider"></span>
+                        </label>
                     </div>
                 </div>
 
@@ -136,10 +141,9 @@
                 <div class="screen" id="Outputs">
                     <div class="title">Outputs</div>
                     <div id="outputOptionsContainer" class="container-row">
-                        <select name="outputType" id="outputTypeSelect" onchange="renderer.outputSelectUpdate()">
-                            <option value="channels">Channels</option>
-                            <option value="raw">Raw</option>
-                        </select>
+                        <button class="button w-2" value="channels"
+                                onclick="renderer.outputSelectUpdate('channels')">Channels</button>
+                        <button class="button w-2" value="raw" onclick="renderer.outputSelectUpdate('raw')">Raw</button>
                     </div>
                     <div id="outputContainer" class="scroll-enabled">
                         <div id="rawOutputContainer" class="outputContainer"></div>
@@ -213,6 +217,21 @@
 
                 <div class="screen is-cmd-token" id="Playbacks">
                     <div class="title">Playbacks</div>
+
+                    <div id="playbackContainer">
+                        <div id="playbackContainerLeft">
+                            <div id="playbackController">
+                                <div class="btn" id="goButton">Go</div>
+                                <div class="btn" id="pauseButton">Pause</div>
+                            </div>
+                            <div id="playbackStack">
+                                
+                            </div>
+                        </div>
+                        <div id="playbackSectionRight">
+                            <div id="playbackFader">FADER</div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="screen is-cmd-token" id="Colour">
@@ -334,11 +353,11 @@
                     </div>
 
                     <div class="attributeAllContainer scroll-enabled">
-                        <div id="unknownControlsContainer" class="attribute-controls-container scroll-enabled">
+                        <div id="uncategorisedControlsContainer" class="attribute-controls-container scroll-enabled">
 
                         </div>
 
-                        <div id="unknownPalettesContainer" class="attribute-palettes-container scroll-enabled">
+                        <div id="uncategorisedPalettesContainer" class="attribute-palettes-container scroll-enabled">
 
                         </div>
                     </div>

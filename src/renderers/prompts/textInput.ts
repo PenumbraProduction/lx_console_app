@@ -1,4 +1,4 @@
-// import styles
+import "../../../css/style.scss";
 
 import { PromptIpc } from "../../main/prompts/prompt_preload";
 

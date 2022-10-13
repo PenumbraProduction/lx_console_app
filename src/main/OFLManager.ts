@@ -169,11 +169,19 @@ export async function getFixtureById(id: string) {
 }
 
 export function getChannelTypeMappingForward(value: string) {
-	return ChannelTypeMappings[value] ? ChannelTypeMappings[value] : "UNKNOWN";
+	return ChannelTypeMappings[value] ? ChannelTypeMappings[value] : "UNCATEGORISED";
 }
 
 export function getChannelTypeMappingBackward(value: string) {
 	return Object.keys(ChannelTypeMappings).filter((key) => ChannelTypeMappings[key] === value);
+}
+
+export function getCategories() {
+	return new Set(Object.values(ChannelTypeMappings));
+}
+
+export function getTypes() {
+	return new Set(Object.keys(ChannelTypeMappings));
 }
 
 ipcMain.on("updateProfileLibrary", async () => await updateProfileLibrary());

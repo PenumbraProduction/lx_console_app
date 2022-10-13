@@ -16,10 +16,6 @@
     </head>
 
     <body>
-        <button onclick="prompt_patchAdd_renderer.submitData()">Submit</button>
-
-        <button onclick="prompt_patchAdd_renderer.windowInstruction('close')">Cancel</button>
-
         <h4 class="modal-title">Patch Fixtures</h4>
 
         <div id="patchFixtureModalMessage" class="modal-message bad"></div>
@@ -52,7 +48,8 @@
             <input type="number" min=1 name="startChannel" id="startChannel"
                    onchange="prompt_patchAdd_renderer.setPatchStartChannel()"><br>
 
-            <input type="submit" value="Patch" id="patchSubmit" class="disabled" disabled>
+            <input type="submit" value="Patch" id="patchSubmit" class="disabled button" disabled>
+            <button class="button" onclick="prompt_patchAdd_renderer.windowInstruction('close')">Cancel</button>
         </form>
 
         <script src="../../out/prompt_patchAdd_renderer.js"></script>

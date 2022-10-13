@@ -140,6 +140,12 @@ export class CommandLine extends EventEmitter {
 		this.emit("tokenUpdate");
 	}
 
+	execImmediately(tokens: string[]) {
+		if (!this.execFunc(tokens)) return;
+		this.history.push(tokens);
+		this.emit("historyUpdate");
+	}
+
 	optionalAddToken(token: string) {
 		this.addToken();
 		if(this.tokens[this.tokens.length - 1] == token) return;

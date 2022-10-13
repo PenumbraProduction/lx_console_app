@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, MessageBoxOptions, ipcMain, Menu, MenuItem, shell } from "electron";
+import { app, BrowserWindow, dialog, MessageBoxOptions, ipcMain, Menu, MenuItem, shell, screen } from "electron";
 import * as os from "os";
 import * as path from "path";
 import * as remote from "@electron/remote/main";
@@ -55,6 +55,9 @@ app.on("web-contents-created", (e, contents) => contents.on("will-navigate", (ev
 let splashWindow: BrowserWindow;
 
 function createWindow() {
+	const cursorScreenPoint = screen.getCursorScreenPoint();
+	const screenToUse = screen.getDisplayNearestPoint(cursorScreenPoint);
+
 	let useFrame = true;
 
 	if (process.platform === "win32") {
@@ -77,6 +80,10 @@ function createWindow() {
 		icon: path.join(__dirname, iconPath),
 		show: false
 	});
+	
+	splashWindow.setBounds(screenToUse.bounds);
+	splashWindow.setSize(600, 400);
+	splashWindow.center();
 
 	splashWindow.loadFile("html/splash.html");
 
@@ -101,6 +108,10 @@ function createWindow() {
 		show: false,
 		title: "LX Console"
 	});
+
+	mainWindow.setBounds(screenToUse.bounds);
+	mainWindow.setSize(1280, 720);
+	mainWindow.center();
 
 	remote.enable(mainWindow.webContents);
 	remote.initialize();
@@ -204,6 +215,11 @@ normalMenu.append(
 				type: "separator"
 			},
 			{
+				label: "Restart",
+				accelerator: "Alt+R",
+				click: () => restart()
+			},
+			{
 				label: "Exit",
 				click: () => app.exit()
 			}
@@ -234,7 +250,7 @@ normalMenu.append(
 			},
 			{
 				label: "Refresh Page",
-				accelerator: "Alt+R",
+				accelerator: "CmdOrCtrl+R",
 				click: () => mainWindow.reload()
 			},
 			{
@@ -311,10 +327,12 @@ ipcMain.on("setMenuBarVisibility", (event, value: boolean) => {
 	mainWindow.setMenuBarVisibility(value);
 });
 
-ipcMain.on("restart", () => {
+function restart() {
 	app.relaunch();
 	mainWindow.webContents.send("onClose");
-});
+}
+
+ipcMain.on("restart", restart);
 
 ipcMain.on("exit", async () => {
 	await DmxManager.close();
@@ -324,7 +342,7 @@ ipcMain.on("exit", async () => {
 
 ipcMain.on("lock", () => {
 	console.log("LOCK CONSOLE");
-})
+});
 
 ipcMain.on("defaultDataDir", (event) => {
 	event.returnValue = app.getPath("userData");

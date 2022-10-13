@@ -1,5 +1,5 @@
 import { v4 } from "uuid";
-import { BrowserWindow, ipcMain, IpcMainEvent } from "electron";
+import { BrowserWindow, ipcMain, IpcMainEvent, screen } from "electron";
 import * as remote from "@electron/remote/main";
 
 export const createPromptWindow = (parent: BrowserWindow, file: string, options: any) =>
@@ -15,6 +15,14 @@ export const createPromptWindow = (parent: BrowserWindow, file: string, options:
 			frame: false,
 			alwaysOnTop: false
 		});
+
+		const cursorScreenPoint = screen.getCursorScreenPoint();
+		const screenToUse = screen.getDisplayNearestPoint(cursorScreenPoint);
+		window.setBounds({
+			width: screenToUse.workAreaSize.width * (3 / 4),
+			height: screenToUse.workAreaSize.height * (3 / 4)
+		});
+		window.center();
 
 		window.setMenu(null);
 		window.setMenuBarVisibility(false);

@@ -1,0 +1,14 @@
+
+console.log(
+	JSON.stringify(attributes, (key, value) => {
+		if (value instanceof Map) {
+			return {
+				dataType: "Map",
+				value: Array.from(value.entries()) // or with spread: value: [...value]
+			};
+		} else {
+			return value;
+		}
+	})
+);
+console.log(attributes);

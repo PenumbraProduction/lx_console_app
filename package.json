@@ -65,6 +65,7 @@
     "devDependencies": {
         "@types/bootstrap": "^5.1.6",
         "@types/color": "^3.0.3",
+        "@types/deep-equal": "^1.0.1",
         "@types/feather-icons": "^4.7.0",
         "@types/jquery": "^3.5.14",
         "@types/node": "^16.9.4",
@@ -99,6 +100,7 @@
         "axios": "^0.27.2",
         "bootstrap": "^4.6.1",
         "color": "^4.2.3",
+        "deep-equal": "^2.0.5",
         "dmxuniverse": "^1.0.1",
         "electron-context-menu": "^3.3.0",
         "electron-log": "^4.4.8",

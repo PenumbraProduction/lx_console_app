@@ -2,18 +2,23 @@ import { Event as ElectronRenderEvent } from "electron/renderer";
 import { MainAPI } from "../../main/preload";
 import { isNumber } from "../../common/util/is";
 import { UserPrefs } from "../../common/UserPrefs";
+import deepEqual from "deep-equal";
 import * as feather from "feather-icons";
 import { icons as featherIcons } from "feather-icons";
 import color from "color";
 import {
 	ChannelData,
+	CuePaletteItemData,
 	DefinedProfile,
 	DMXToPercent,
 	FixtureChannel,
+	GenericPaletteItemData,
 	GroupData,
 	GroupPaletteItem,
 	isWithinRange,
-	PercentToDMX
+	PaletteItem,
+	PercentToDMX,
+	ProfileTypeIdentifier
 } from "lx_console_backend";
 import { CommandLine, ControlKey, Key, MetaKey, ModifierKey, NumericalKey } from "../../common/CommandLine";
 import p5 from "p5";
@@ -92,12 +97,12 @@ api.ipcHandle("onClose", () => {
 	api.ipcSend("exit");
 });
 
-const ATTRIBUTE_CATEGORIES = ["BEAM", "COLOUR", "POSITION", "SHAPE", "FUNCTION", "UNKNOWN"];
+const ATTRIBUTE_CATEGORIES = ["BEAM", "COLOUR", "POSITION", "SHAPE", "FUNCTION", "UNCATEGORISED"];
 
 export function openPatchFixturesPrompt() {
 	const usedChannels = api.ipcSendSync("getPatchChannelNumbers");
 	const usedDmxSpace = api.ipcSendSync("getUsedDmxSpace");
-	const data = api.ipcSendSync("createPrompt", { file: "patch_add", options: { usedChannels, usedDmxSpace } });
+	const data = api.ipcSendSync("createPrompt", { file: "patch_add", options: { usedChannels: usedChannels, usedDmxSpace: usedDmxSpace } });
 	if (!data) return console.log("Prompt returned no data");
 	data.forEach((fx: { channel: number; definedProfile: DefinedProfile; initialAddress: number }) => {
 		api.ipcSend("patchAdd", fx.channel, fx.definedProfile, fx.initialAddress);
@@ -246,16 +251,18 @@ function generateChannelOutputTable(channels: Array<number>) {
 }
 generateChannelOutputTable([]);
 
-export function outputSelectUpdate() {
-	if (($("#outputTypeSelect").val() as string) == "raw") {
+export function outputSelectUpdate(type: string) {
+	if (type == "raw") {
 		$("#channelOutputContainer").hide();
 		$("#rawOutputContainer").show();
-	} else {
+	} else if (type == "channels") {
 		$("#channelOutputContainer").show();
 		$("#rawOutputContainer").hide();
+	} else {
+		errorPopup("Unknown Output Selection Type", `Selection type "${type}" does not correspond to a viewable page`);
 	}
 }
-outputSelectUpdate();
+outputSelectUpdate("channels");
 
 export function attributeSelectUpdate(pageNum: number) {
 	if (pageNum == 0) {
@@ -274,18 +281,37 @@ export function attributeSelectUpdate(pageNum: number) {
 }
 attributeSelectUpdate(0);
 
-export function renderOutputTable(
-	address: number,
-	value: { val: number; programmerVal: number },
-	channel: number,
-	type: string
-) {
+export function renderOutputTable(address: number, value: { val: number; programmerVal: number }, channel: number, type: string) {
 	$(`#raw-output-${address}-value`).text(value.programmerVal >= 0 ? value.programmerVal : value.val);
 	if (type == "INTENSITY") {
-		$(`#channel-output-${channel}-value`).text(
-			Math.round(DMXToPercent(value.programmerVal >= 0 ? value.programmerVal : value.val))
-		);
+		$(`#channel-output-${channel}-value`).text(Math.round(DMXToPercent(value.programmerVal >= 0 ? value.programmerVal : value.val)));
 	}
+}
+
+function updateAttribute(address: number, value: { val: number; programmerVal: number }, channel: number, type: string, userInitiated: boolean) {
+	if (userInitiated) return;
+	const ch = api.ipcSendSync("getChannel", channel) as ChannelData;
+	$(`#${ch.profile.id}_${ch.profile.options.channelMode}_${address - ch.dmxAddressRange.initial}_attribute_range`).val(
+		value.programmerVal >= 0 ? value.programmerVal : value.val
+	);
+	$(`#${ch.profile.id}_${ch.profile.options.channelMode}_${address - ch.dmxAddressRange.initial}_attribute_value`).text(
+		(value.programmerVal >= 0 ? value.programmerVal : value.val).toString()
+	);
+}
+
+function updateSelectedAttributes() {
+	selectedChannels.forEach((channel) => {
+		const ch = api.ipcSendSync("getChannel", channel) as ChannelData;
+		ch.channelMap.forEach((chm) => {
+			const out = ch.output[chm.addressOffset];
+			$(`#${ch.profile.id}_${ch.profile.options.channelMode}_${chm.addressOffset}_attribute_range`).val(
+				out.programmerVal >= 0 ? out.programmerVal : out.val
+			);
+			$(`#${ch.profile.id}_${ch.profile.options.channelMode}_${chm.addressOffset}_attribute_value`).text(
+				(out.programmerVal >= 0 ? out.programmerVal : out.val).toString()
+			);
+		});
+	});
 }
 
 type FixtureAttributeMap = Map<string, { channelData: ChannelData; addressChannels: FixtureChannel[] }>;
@@ -298,15 +324,11 @@ function renderAttributeControllers(fixtures: Map<string, FixtureAttributeMap>) 
 		fxs.forEach((v, k) => {
 			const profileChannelMode = k.split("_")[1];
 			const fixtureContainerElt = document.createElement("div");
-			fixtureContainerElt.id = `${
-				v.channelData.profile.id
-			}_${profileChannelMode}_${attr.toLowerCase()}_controller`;
+			fixtureContainerElt.id = `${v.channelData.profile.id}_${profileChannelMode}_${attr.toLowerCase()}_controller`;
 			fixtureContainerElt.classList.add("attribute-controller-container");
 
 			const fixtureNameElt = document.createElement("span");
-			fixtureNameElt.id = `${
-				v.channelData.profile.id
-			}_${profileChannelMode}_${attr.toLowerCase()}_controller_name`;
+			fixtureNameElt.id = `${v.channelData.profile.id}_${profileChannelMode}_${attr.toLowerCase()}_controller_name`;
 			fixtureNameElt.classList.add("attribute-controller-name");
 			fixtureNameElt.textContent = `${v.channelData.profile.name} (${
 				v.channelData.profile.channelModes[v.channelData.profile.options.channelMode].count
@@ -314,9 +336,7 @@ function renderAttributeControllers(fixtures: Map<string, FixtureAttributeMap>) 
 			fixtureContainerElt.appendChild(fixtureNameElt);
 
 			const attributesContainerElt = document.createElement("div");
-			attributesContainerElt.id = `${
-				v.channelData.profile.id
-			}_${profileChannelMode}_${attr.toLowerCase()}_attribute_controller_list`;
+			attributesContainerElt.id = `${v.channelData.profile.id}_${profileChannelMode}_${attr.toLowerCase()}_attribute_controller_list`;
 			attributesContainerElt.classList.add("attribute-controller-list-container");
 			fixtureContainerElt.appendChild(attributesContainerElt);
 
@@ -353,7 +373,7 @@ function renderAttributeControllers(fixtures: Map<string, FixtureAttributeMap>) 
 				attributeSliderElt.classList.add("attributeRangeInput");
 				attributeContainerElt.appendChild(attributeSliderElt);
 				attributeSliderElt.addEventListener("input", () => {
-					attributeSet(
+					attributeSetByProfile(
 						{ targetId: v.channelData.profile.id, targetOptions: profileChannelMode },
 						ac.addressOffset,
 						parseInt(attributeSliderElt.value)
@@ -367,11 +387,14 @@ function renderAttributeControllers(fixtures: Map<string, FixtureAttributeMap>) 
 				attributeContainerElt.appendChild(attributeBoundsContainerElt);
 				// attributeBoundsContainerElt.addEventListener("change", (e) => console.log("changed option"));
 
-				const attributeBoundsOption = document.createElement("div");
-				attributeBoundsOption.id = `${v.channelData.profile.id}_${profileChannelMode}_unset_attribute_bound`;
-				attributeBoundsOption.classList.add("attributeBoundsOption");
-				attributeBoundsOption.textContent = "Unset";
-				attributeBoundsContainerElt.appendChild(attributeBoundsOption);
+				const attributeBoundsUnset = document.createElement("div");
+				attributeBoundsUnset.id = `${v.channelData.profile.id}_${profileChannelMode}_unset_attribute_bound`;
+				attributeBoundsUnset.classList.add("attributeBoundsOption");
+				attributeBoundsUnset.textContent = "Unset";
+				attributeBoundsUnset.onclick = () => {
+					api.ipcSend("clearProgrammerAddress", { channel: v.channelData.channel, address: ac.addressOffset });
+				};
+				attributeBoundsContainerElt.appendChild(attributeBoundsUnset);
 
 				if (!ac.bounds?.length) return;
 				ac.bounds.forEach((bound) => {
@@ -380,11 +403,7 @@ function renderAttributeControllers(fixtures: Map<string, FixtureAttributeMap>) 
 					attributeBoundsOption.classList.add("attributeBoundsOption");
 					attributeBoundsOption.textContent = `${bound.name} (${bound.initial} > ${bound.final})`;
 					attributeBoundsOption.addEventListener("click", () => {
-						attributeSet(
-							{ targetId: v.channelData.profile.id, targetOptions: profileChannelMode },
-							ac.addressOffset,
-							bound.initial
-						);
+						attributeSetByProfile({ targetId: v.channelData.profile.id, targetOptions: profileChannelMode }, ac.addressOffset, bound.initial);
 						attributeValElt.textContent = bound.initial.toString();
 						attributeSliderElt.value = bound.initial.toString();
 					});
@@ -401,32 +420,81 @@ function renderAttributeControllers(fixtures: Map<string, FixtureAttributeMap>) 
 	});
 }
 
-function renderAttributePalettes(fixtures: Map<string, FixtureAttributeMap>) {
-	ATTRIBUTE_CATEGORIES.forEach((attr) => {
-		$(`#${attr.toLowerCase()}PalettesContainer`).empty();
-		const fxs = fixtures.get(attr);
-		console.log(fxs);
-		fxs.forEach((v, k) => {
-			const profileChannelMode = k.split("_")[1];
-			const fixtureContainerElt = document.createElement("div");
-			fixtureContainerElt.id = `${v.channelData.profile.id}_${profileChannelMode}_${attr.toLowerCase()}_palettes`;
-			fixtureContainerElt.classList.add("attribute-controller-container");
+export function renderAttributePalettes(category: string) {
+	const pals = api.ipcSendSync("getAllPalettes", { category }) as GenericPaletteItemData[];
 
-			const fixtureNameElt = document.createElement("span");
-			fixtureNameElt.id = `${v.channelData.profile.id}_${profileChannelMode}_${attr.toLowerCase()}_palettes_name`;
-			fixtureNameElt.classList.add("attribute-controller-name");
-			fixtureNameElt.textContent = `${v.channelData.profile.name} (${
-				v.channelData.profile.channelModes[v.channelData.profile.options.channelMode].count
-			})`;
-			fixtureContainerElt.appendChild(fixtureNameElt);
+	$(`#${category.toLowerCase()}PalettesContainer`).empty();
+	pals.forEach((pal) => {
+		const container = document.createElement("div");
+		container.id = `${category.toLowerCase()}PaletteItem_${pal.id}`;
+		container.classList.add("paletteItem");
 
-			const attributesContainerElt = document.createElement("div");
-			attributesContainerElt.id = `${
-				v.channelData.profile.id
-			}_${profileChannelMode}_${attr.toLowerCase()}_attribute_palettes_list`;
-			attributesContainerElt.classList.add("attribute-controller-list-container");
-			fixtureContainerElt.appendChild(attributesContainerElt);
+		const idElt = document.createElement("div");
+		idElt.classList.add("paletteItemId");
+		idElt.textContent = pal.id.toString();
+
+		const nameElt = document.createElement("div");
+		nameElt.classList.add("paletteItemName");
+		nameElt.textContent = pal.name.toString();
+
+		container.appendChild(idElt);
+		container.appendChild(nameElt);
+
+		container.onclick = () => {
+			pal.addressValues.forEach(({ value, addressOffset }, { id, options: { channelMode } }) => {
+				attributeSetByProfile({ targetId: id, targetOptions: channelMode.toString() }, addressOffset, value);
+				$(`#${id}_${channelMode}_${addressOffset}_attribute_range`).val(value);
+				$(`#${id}_${channelMode}_${addressOffset}_attribute_value`).text(value.toString());
+			});
+		};
+
+		$(`#${category.toLowerCase()}PalettesContainer`).append(container);
+	});
+}
+
+function highlightPalettes() {
+	const profileIdentifiers = api.ipcSendSync("getProfileIdentifiersFromChannels", selectedChannels) as Array<ProfileTypeIdentifier>;
+	$(".paletteItem").removeClass("highlight");
+	ATTRIBUTE_CATEGORIES.forEach((category) => {
+		const pals = api.ipcSendSync("getAllPalettes", { category }) as GenericPaletteItemData[];
+		pals.forEach((pal) => {
+			Array.from(pal.addressValues.keys()).forEach((profileIdentifier) => {
+				const included = profileIdentifiers.map((pi) => deepEqual(pi, profileIdentifier)).reduce((prev, curr) => prev || curr, false);
+				if (included) $(`#${category.toLowerCase()}PaletteItem_${pal.id}`).addClass("highlight");
+			});
 		});
+	});
+}
+
+export function renderCues() {
+	$("#cuesContainer").empty();
+	const cues = api.ipcSendSync("getAllCues") as CuePaletteItemData[];
+	cues.forEach((cue) => {
+		const container = document.createElement("div");
+		container.id = `cue_${cue.id}`;
+		container.classList.add("cue");
+
+		const idElt = document.createElement("div");
+		idElt.classList.add("cueId");
+		idElt.textContent = cue.id.toString();
+
+		const nameElt = document.createElement("div");
+		nameElt.classList.add("cueName");
+		nameElt.textContent = cue.name.toString();
+
+		container.appendChild(idElt);
+		container.appendChild(nameElt);
+
+		container.onclick = () => {
+			cue.addressValues.forEach((value, { channel, address }) => {
+				attributeSetByChannel(channel, address, value);
+				const ch = api.ipcSendSync("getChannel", channel) as ChannelData;
+				$(`#${ch.channel}_${ch.profile.options.channelMode}_${address}_attribute_range`).val(value);
+				$(`#${ch.channel}_${ch.profile.options.channelMode}_${address}_attribute_value`).text(value.toString());
+			});
+		};
+
+		$("#cuesContainer").append(container);
 	});
 }
 
@@ -440,7 +508,6 @@ export function setSelectedChannels(sc: Set<number>) {
 	const existingChannels = api.ipcSendSync("getPatchChannelNumbers");
 	selectedChannels = new Set(Array.from(sc).filter((num) => existingChannels.includes(num)));
 
-	// update selection highlights
 	$(".channel").removeClass("selected");
 	selectedChannels.forEach((ch) => $(`#channel-output-${ch}`).addClass("selected"));
 
@@ -457,26 +524,14 @@ export function setSelectedChannels(sc: Set<number>) {
 			const chData = api.ipcSendSync("getChannel", ch);
 			const profileId = chData.profile.id;
 			const profileChannelMode = chData.profile.options.channelMode;
-			if (!attr.has(`${profileId}_${profileChannelMode}`))
-				attr.set(`${profileId}_${profileChannelMode}`, { channelData: chData, addressChannels });
+			if (!attr.has(`${profileId}_${profileChannelMode}`)) attr.set(`${profileId}_${profileChannelMode}`, { channelData: chData, addressChannels });
 		});
-		// if(!attr.size) return; // removes entire type map if no fixtures (and therefore no channels) use it
 		attributes.set(type, attr);
 	});
-	// console.log(
-	// 	JSON.stringify(attributes, (key, value) => {
-	// 		if (value instanceof Map) {
-	// 			return {
-	// 				dataType: "Map",
-	// 				value: Array.from(value.entries()) // or with spread: value: [...value]
-	// 			};
-	// 		} else {
-	// 			return value;
-	// 		}
-	// 	})
-	// );
-	console.log(attributes);
+
 	renderAttributeControllers(attributes);
+	updateSelectedAttributes();
+	highlightPalettes();
 }
 
 const notificationContainer = $("#notificationContainer");
@@ -498,17 +553,9 @@ export function createNotification(title: string, message: string, timeSec?: num
 		</div>
 	`);
 
-	// <div class="notification-footer">
-	// 			<span id="notification-time-${id}">Just Now</span>
-	// 			<span class="notification-wait" id="notification-wait-${id}">Pause</span>
-	// 		</div>
-
 	let counter = timeSec | 20;
 	const interval = setInterval(() => {
 		counter--;
-
-		// !
-		// $(`#notification-time-${id}`).text(`${counter} seconds remaining`);
 		if (counter <= 0) {
 			$(`#notification-${id}`).remove();
 			clearInterval(interval);
@@ -525,17 +572,12 @@ export function createNotification(title: string, message: string, timeSec?: num
 		e.stopPropagation();
 		clearInterval(interval);
 		$(`#notification-wait-${id}`).remove();
-		// !
-		// $(`#notification-time-${id}`).text("Notification Pinned");
 	});
 
 	if (callback) $(`#notification-${id}`).on("click", callback);
 
 	idCount++;
 }
-
-// api.ipcHandle("bufferUpdate", (e, data) => renderRawOutputTable(data));
-api.ipcHandle("addressUpdate", (e, address, value, channel, type) => renderOutputTable(address, value, channel, type));
 
 api.ipcHandle("updatingFixtureLibrary", () => {
 	createNotification("Profile Library", "Updating profile library...");
@@ -566,7 +608,7 @@ api.ipcHandle("serialportOpen", () => {
 });
 
 api.ipcHandle("serialportOpening", () => {
-	// createNotification("DMX Interface", "Interface Connected!");
+	// createNotification("DMX Interface", "Connecting...");
 	// console.log("Serialport opening");
 	$("#dmxInterfaceStatus").removeClass("needs-attention");
 	$("#dmxInterfaceStatus>.statusbar-item-content>.feather-container").html(featherIcons["loader"].toSvg());
@@ -574,7 +616,6 @@ api.ipcHandle("serialportOpening", () => {
 
 api.ipcHandle("serialportOpeningFailed", () => {
 	createNotification("DMX Interface", "Failed to connect to interface");
-	console.log("Serialport opening failed");
 	$("#dmxInterfaceStatus").addClass("needs-attention");
 	$("#dmxInterfaceStatus>.statusbar-item-content>.feather-container").html(featherIcons["alert-triangle"].toSvg());
 });
@@ -598,10 +639,15 @@ api.ipcHandle("serialportRetry", () => {
 });
 
 api.ipcHandle("serialportRetryFail", (e, err) => {
-	console.log("Serialport Retry Fail");
-	console.log(err);
+	createNotification("DMX Interface", `Failed to connect: ${err}`);
 	$("#dmxInterfaceStatus>.statusbar-item-content>.feather-container").html(featherIcons["disc"].toSvg());
 	$("#dmxInterfaceStatus").removeClass("needs-attention");
+});
+
+// api.ipcHandle("bufferUpdate", (e, data) => renderRawOutputTable(data));
+api.ipcHandle("addressUpdate", (e, address, value, channel, type, userInitiated) => {
+	renderOutputTable(address, value, channel, type);
+	updateAttribute(address, value, channel, type, userInitiated);
 });
 
 api.ipcHandle("patchAdd", () => forceRefreshPatchList());
@@ -613,15 +659,41 @@ api.ipcHandle("groupAdd", () => forceRefreshGroupList());
 api.ipcHandle("groupDelete", () => forceRefreshGroupList());
 api.ipcHandle("groupMove", () => forceRefreshGroupList());
 
-api.ipcHandle("cueAdd", (e: ElectronRenderEvent, cue) => console.log("cueAdd", cue));
-api.ipcHandle("cueDelete", (e: ElectronRenderEvent, id: number | Set<number>) => console.log("cueDelete", id));
-api.ipcHandle("cueMove", (e: ElectronRenderEvent, id1: number, id2: number) => console.log("cueMove", id1, id2));
+api.ipcHandle("colourPaletteAdd", () => renderAttributePalettes("COLOUR"));
+api.ipcHandle("colourPaletteDelete", () => renderAttributePalettes("COLOUR"));
+api.ipcHandle("colourPaletteMove", () => renderAttributePalettes("COLOUR"));
+api.ipcHandle("colourPaletteUpdate", () => renderAttributePalettes("COLOUR"));
 
-function attributeSet(
-	target: string | { targetId: string; targetOptions: string },
-	addressOffset: number,
-	addressValue: number
-) {
+api.ipcHandle("positionPaletteAdd", () => renderAttributePalettes("POSITION"));
+api.ipcHandle("positionPaletteDelete", () => renderAttributePalettes("POSITION"));
+api.ipcHandle("positionPaletteMove", () => renderAttributePalettes("POSITION"));
+api.ipcHandle("positionPaletteUpdate", () => renderAttributePalettes("POSITION"));
+
+api.ipcHandle("beamPaletteAdd", () => renderAttributePalettes("BEAM"));
+api.ipcHandle("beamPaletteDelete", () => renderAttributePalettes("BEAM"));
+api.ipcHandle("beamPaletteMove", () => renderAttributePalettes("BEAM"));
+api.ipcHandle("beamPaletteUpdate", () => renderAttributePalettes("BEAM"));
+
+api.ipcHandle("shapePaletteAdd", () => renderAttributePalettes("SHAPE"));
+api.ipcHandle("shapePaletteDelete", () => renderAttributePalettes("SHAPE"));
+api.ipcHandle("shapePaletteMove", () => renderAttributePalettes("SHAPE"));
+api.ipcHandle("shapePaletteUpdate", () => renderAttributePalettes("SHAPE"));
+
+api.ipcHandle("functionPaletteAdd", () => renderAttributePalettes("FUNCTION"));
+api.ipcHandle("functionPaletteDelete", () => renderAttributePalettes("FUNCTION"));
+api.ipcHandle("functionPaletteMove", () => renderAttributePalettes("FUNCTION"));
+api.ipcHandle("functionPaletteUpdate", () => renderAttributePalettes("FUNCTION"));
+
+api.ipcHandle("uncategorisedPaletteAdd", () => renderAttributePalettes("UNCATEGORISED"));
+api.ipcHandle("uncategorisedPaletteDelete", () => renderAttributePalettes("UNCATEGORISED"));
+api.ipcHandle("uncategorisedPaletteMove", () => renderAttributePalettes("UNCATEGORISED"));
+api.ipcHandle("uncategorisedPaletteUpdate", () => renderAttributePalettes("UNCATEGORISED"));
+
+api.ipcHandle("cueAdd", () => renderCues());
+api.ipcHandle("cueDelete", () => renderCues());
+api.ipcHandle("cueMove", () => renderCues());
+
+function attributeSetByProfile(target: string | { targetId: string; targetOptions: string }, addressOffset: number, addressValue: number) {
 	if (typeof target == "string") {
 		const [targetId, targetOptions] = target.split("_");
 		target = { targetId, targetOptions };
@@ -633,18 +705,29 @@ function attributeSet(
 		if (!selectedChannels.has(ch.channel)) channels.delete(ch.channel);
 	});
 	const chs = Array.from(channels.values()).map((ch) => ({
-		channel: ch,
+		channel: ch.channel,
 		addressOffset: addressOffset,
 		value: addressValue
 	}));
 	api.ipcSend("updateChannelsAttribute", { channels: chs });
 }
 
+function attributeSetByChannel(channel: number, addressOffset: number, addressValue: number) {
+	api.ipcSend("updateChannelsAttribute", {
+		channels: [
+			{
+				channel: channel,
+				addressOffset: addressOffset,
+				value: addressValue
+			}
+		]
+	});
+}
+
 export function parseSelectionString(tokens: string[], modifyFrom?: Set<number>): Set<number> {
 	const channels = modifyFrom ? modifyFrom : new Set<number>();
 	for (let i = 0; i < tokens.length; i++) {
 		const token = tokens[i];
-		console.log(token);
 		if (isNumber(token)) channels.add(parseInt(token));
 		else if (token == "-") {
 			if (isNumber(tokens[i + 1])) {
@@ -671,8 +754,8 @@ export function parseSelectionString(tokens: string[], modifyFrom?: Set<number>)
 
 			i++;
 		} else if (token == "Groups") {
+			if (!isNumber(tokens[i + 1])) break;
 			const group = api.ipcSendSync("getGroup", parseInt(tokens[i + 1])) as GroupData;
-			console.log(tokens[i - 1]);
 			if (tokens[i - 1] && tokens[i - 1] == "-") {
 				group.channels.forEach((ch) => channels.delete(ch));
 			} else if (tokens[i - 1] && tokens[i - 1] == "+") {
@@ -739,11 +822,10 @@ cli.setExecFunc((tokens: string[]) => {
 		setSelectedChannels(parseSelectionString(tokens));
 		setIntensity();
 		return true;
-	} else if (tokens[0] == "-" || tokens[0] == "+" || tokens[0] == "Groups" || tokens[1] == "Groups") {
+	} else if (tokens[0] == "-" || tokens[0] == "+" || tokens[0] == "Groups") {
 		if (tokens[1] == "-" || tokens[1] == "+") {
 			// todo: increment, decrement intensity
 		}
-		console.log(tokens);
 		setSelectedChannels(parseSelectionString(tokens, selectedChannels));
 		return true;
 	}
@@ -759,6 +841,23 @@ cli.setExecFunc((tokens: string[]) => {
 				return true;
 			}
 		}
+
+		if (ATTRIBUTE_CATEGORIES.includes(tokens[1].toUpperCase())) {
+			if (!isNumber(tokens[2])) return false;
+			const name = api.ipcSendSync("createPrompt", { file: "text_input", options: {} });
+			if (!name || !name.length) return false;
+			api.ipcSend(`${tokens[1].toLowerCase()}PaletteName`, parseInt(tokens[2]), name);
+			return true;
+		}
+
+		if (tokens[1] == "Cues") {
+			if (!isNumber(tokens[2])) return false;
+			const name = api.ipcSendSync("createPrompt", { file: "text_input", options: {} });
+			if (!name || !name.length) return false;
+			const cueId = parseInt(tokens[2]);
+			api.ipcSend("cueName", cueId, name);
+			return true;
+		}
 	}
 
 	if (tokens[0] == "Move") {
@@ -769,6 +868,22 @@ cli.setExecFunc((tokens: string[]) => {
 					return true;
 				}
 			}
+		}
+
+		if (ATTRIBUTE_CATEGORIES.includes(tokens[1].toUpperCase())) {
+			if (!isNumber(tokens[2]) || !isNumber(tokens[3])) return false;
+			const ogID = parseInt(tokens[2]);
+			const newID = parseInt(tokens[3]);
+			api.ipcSend(`${tokens[1].toLowerCase()}PaletteMove`, ogID, newID);
+			return true;
+		}
+
+		if (tokens[1] == "Cues") {
+			if (!isNumber(tokens[2]) || !isNumber(tokens[3])) return false;
+			const ogID = parseInt(tokens[2]);
+			const newID = parseInt(tokens[3]);
+			api.ipcSend("cueMove", ogID, newID);
+			return true;
 		}
 	}
 
@@ -787,6 +902,18 @@ cli.setExecFunc((tokens: string[]) => {
 				return true;
 			}
 		}
+		if (ATTRIBUTE_CATEGORIES.includes(tokens[1].toUpperCase())) {
+			if (!isNumber(tokens[2])) return false;
+			const paletteId = parseInt(tokens[2]);
+			api.ipcSend(`${tokens[1].toLowerCase()}PaletteDelete`, paletteId);
+			return true;
+		}
+		if (tokens[1] == "Cues") {
+			if (!isNumber(tokens[2])) return false;
+			const cueId = parseInt(tokens[2]);
+			api.ipcSend("cueDelete", cueId);
+			return true;
+		}
 	}
 
 	if (tokens[0] == "Record") {
@@ -794,10 +921,32 @@ cli.setExecFunc((tokens: string[]) => {
 			openPatchFixturesPrompt();
 			return true;
 		}
+		if (ATTRIBUTE_CATEGORIES.includes(tokens[1].toUpperCase())) {
+			if (!isNumber(tokens[2])) return false;
+			const paletteId = parseInt(tokens[2]);
+			api.ipcSend(`${tokens[1].toLowerCase()}PaletteRecord`, paletteId, selectedChannels);
+			return true;
+		}
 		if (tokens[1] == "Groups") {
 			if (!isNumber(tokens[2])) return false;
-			const groupNo = parseInt(tokens[2]);
-			api.ipcSend("groupAdd", groupNo, selectedChannels);
+			const paletteId = parseInt(tokens[2]);
+			api.ipcSend("groupAdd", paletteId, selectedChannels);
+			return true;
+		}
+		if (tokens[1] == "Cues") {
+			if (!isNumber(tokens[2])) return false;
+			const cueId = parseInt(tokens[2]);
+			api.ipcSend("cueAdd", cueId, selectedChannels);
+			return true;
+		}
+		if (tokens[1] == "Playbacks") {
+			if (!isNumber(tokens[2])) return false;
+			const pbCueId = parseInt(tokens[2]);
+			let source: number | Set<number> = selectedChannels;
+			if (tokens[3] == "Cues" && isNumber(tokens[4])) {
+				source = parseInt(tokens[4]);
+			}
+			api.ipcSend("playbackAdd", pbCueId, source);
 			return true;
 		}
 	}
@@ -820,6 +969,7 @@ window.addEventListener("keydown", (e: KeyboardEvent) => {
 	// ----------------------------------------------- \\
 
 	if (key_l == "r") if (modifierKeys.has(ModifierKey.ALT)) return;
+	if (key_l == "r") if (modifierKeys.has(ModifierKey.CONTROL)) return;
 	if (key_l == "d") if (modifierKeys.has(ModifierKey.ALT)) return;
 	if (key_l == "h") if (modifierKeys.has(ModifierKey.ALT)) return;
 	if (key_l == "i") if (modifierKeys.has(ModifierKey.CONTROL) && modifierKeys.has(ModifierKey.SHIFT)) return;
@@ -845,6 +995,9 @@ window.addEventListener("keydown", (e: KeyboardEvent) => {
 		if (key_l == "b") return cli.addToken("Beam");
 		if (key_l == "f") return cli.addToken("Function");
 		if (key_l == "u") return cli.addToken("Uncategorised");
+
+		if (key_l == "x") return cli.addToken("Cues");
+		if (key_l == "k") return cli.addToken("Playbacks");
 
 		if (key_l == "l") return api.ipcSend("lock");
 	}
@@ -899,11 +1052,7 @@ window.addEventListener("mousedown", (e) => {
 				break;
 			}
 			case "attributeSet": {
-				attributeSet(
-					elt.dataset.clickTarget,
-					parseInt(elt.dataset.addressOffset),
-					parseInt(elt.dataset.addressValue)
-				);
+				attributeSetByProfile(elt.dataset.clickTarget, parseInt(elt.dataset.addressOffset), parseInt(elt.dataset.addressValue));
 				break;
 			}
 			default:
@@ -912,43 +1061,43 @@ window.addEventListener("mousedown", (e) => {
 	});
 });
 
-new p5((s: p5) => {
-	let canvas: p5.Renderer;
-	let canvasWidth;
-	let canvasHeight;
-	const XOFFSET = 10;
-	const YOFFSET = 10;
+// new p5((s: p5) => {
+// 	let canvas: p5.Renderer;
+// 	let canvasWidth;
+// 	let canvasHeight;
+// 	const XOFFSET = 10;
+// 	const YOFFSET = 10;
 
-	function updateBoardSizes() {
-		console.log($("#panTiltGridContainer"));
+// 	function updateBoardSizes() {
+// 		console.log($("#panTiltGridContainer"));
 
-		const board_DOM = document.getElementById("panTiltGridContainer");
-		console.log(board_DOM);
-		console.log(board_DOM.offsetHeight);
-		canvasWidth = board_DOM.offsetWidth - XOFFSET * 2;
-		canvasHeight = board_DOM.offsetHeight - YOFFSET * 2;
+// 		const board_DOM = document.getElementById("panTiltGridContainer");
+// 		console.log(board_DOM);
+// 		console.log(board_DOM.offsetHeight);
+// 		canvasWidth = board_DOM.offsetWidth - XOFFSET * 2;
+// 		canvasHeight = board_DOM.offsetHeight - YOFFSET * 2;
 
-		const size = s.min(canvasWidth, canvasHeight);
-		canvasHeight = size;
-		canvasWidth = size;
-		s.resizeCanvas(canvasWidth + XOFFSET * 2, canvasHeight + YOFFSET * 2);
+// 		const size = s.min(canvasWidth, canvasHeight);
+// 		canvasHeight = size;
+// 		canvasWidth = size;
+// 		s.resizeCanvas(canvasWidth + XOFFSET * 2, canvasHeight + YOFFSET * 2);
 
-		canvas.parent(document.getElementById("panTiltGridContainer"));
-	}
+// 		canvas.parent(document.getElementById("panTiltGridContainer"));
+// 	}
 
-	s.setup = () => {
-		canvas = s.createCanvas(10, 10);
-		updateBoardSizes();
-	};
+// 	s.setup = () => {
+// 		canvas = s.createCanvas(10, 10);
+// 		updateBoardSizes();
+// 	};
 
-	s.windowResized = () => {
-		updateBoardSizes();
-	};
+// 	s.windowResized = () => {
+// 		updateBoardSizes();
+// 	};
 
-	s.draw = () => {
-		s.background(80);
-	};
-}, document.getElementById("panTiltGridContainer"));
+// 	s.draw = () => {
+// 		s.background(80);
+// 	};
+// }, document.getElementById("panTiltGridContainer"));
 
 // ------- \\
 // DISPLAY \\
@@ -982,9 +1131,7 @@ export function showScreen(screenName: string): void {
 	} else {
 		errorPopup(
 			"Failed to find screen " + screenName,
-			"hmtl elt with id #" +
-				screenName +
-				" and class .screen was not found by jquery selection and therefore could not be displayed"
+			"hmtl elt with id #" + screenName + " and class .screen was not found by jquery selection and therefore could not be displayed"
 		);
 		showScreen("Home");
 	}

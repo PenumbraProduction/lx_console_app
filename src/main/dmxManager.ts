@@ -1,24 +1,29 @@
 import { ipcMain } from "electron";
 import {
+	desk,
 	Channel,
+	ChannelAddress,
 	CuePaletteItem,
 	DefinedProfile,
-	Desk,
-	DmxAddressRange,
 	FixtureChannel,
 	FixtureChannelType,
-	GroupPaletteItem
+	GenericPaletteItem,
+	GroupPaletteItem,
+	Palette,
+	ProfileTypeIdentifier,
+	StackCue,
+	StackCueSourceType
 } from "lx_console_backend";
 import { Universe } from "dmxuniverse";
-import { getChannelTypeMappingForward, getChannelTypeMappingBackward } from "./OFLManager";
+import { getChannelTypeMappingForward, getChannelTypeMappingBackward, getCategories, getTypes } from "./OFLManager";
 import { mainWindow } from "./main";
+import { inspect } from "util";
 
 function ipcSend(channel: string, ...args: any[]) {
 	mainWindow.webContents.send(channel, ...args);
 }
 
 const universe = new Universe();
-const desk = new Desk();
 
 export async function init() {
 	const port = await Universe.findInterfacePort().catch((e) => console.log(e));
@@ -87,13 +92,21 @@ ipcMain.on("updateChannelsIntensity", (e, data) => {
 
 ipcMain.on("updateChannelsAttribute", (e, data) => {
 	data.channels.forEach((ch: any) => {
-		const channel = desk.patch.getChannel(ch.channel.channel);
+		const channel = desk.patch.getChannel(ch.channel);
 		channel.setAddress(ch.addressOffset, ch.value, true);
 	});
 });
 
 ipcMain.on("clearProgrammer", () => {
 	desk.patch.clearProgrammerValues();
+});
+
+ipcMain.on("clearProgrammerChannel", (e, { channel }) => {
+	desk.patch.getChannel(channel).clearProgrammerValues();
+});
+
+ipcMain.on("clearProgrammerAddress", (e, { channel, address }) => {
+	desk.patch.getChannel(channel).clearProgrammerValue(address);
 });
 
 // ----- \\
@@ -113,17 +126,13 @@ desk.patch.on("patchMove", (id1: number, id2: number) => ipcSend("patchMove", id
 
 desk.patch.on("channelNameUpdate", (channel, name) => ipcSend("channelNameUpdate", channel, name));
 
-desk.patch.on("addressUpdate", (address, value, channel, type) => {
+desk.patch.on("addressUpdate", (address, value, channel, type, userInitiated) => {
 	universe.update(address, value.programmerVal >= 0 ? value.programmerVal : value.val);
-	ipcSend("addressUpdate", address, value, channel.id, type);
+	ipcSend("addressUpdate", address, value, channel.id, type, userInitiated);
 });
 
-ipcMain.on("patchAdd", (e, id: number, profile: DefinedProfile, dmxAddressStart: number) =>
-	desk.patch.addChannel(id, profile, dmxAddressStart)
-);
-ipcMain.on("patchDelete", (e, id: number | Set<number>) =>
-	typeof id == "number" ? desk.patch.removeChannel(id) : desk.patch.removeChannels(id)
-);
+ipcMain.on("patchAdd", (e, id: number, profile: DefinedProfile, dmxAddressStart: number) => desk.patch.addChannel(id, profile, dmxAddressStart));
+ipcMain.on("patchDelete", (e, id: number | Set<number>) => (typeof id == "number" ? desk.patch.removeChannel(id) : desk.patch.removeChannels(id)));
 ipcMain.on("patchMove", (e, id1: number, id2: number) => desk.patch.moveChannel(id1, id2));
 
 ipcMain.on("patchChannelRename", (e, channel, name) => desk.patch.getChannel(channel).setName(name));
@@ -156,7 +165,7 @@ ipcMain.on("getChannelsByProfileType", (e, profileId, options?) => {
 
 ipcMain.on("getChannelsMatchType", (e, channel: number, type: FixtureChannelType) => {
 	const ch = desk.patch.getChannel(channel);
-	if (getChannelTypeMappingForward(type) !== "UNKNOWN") return (e.returnValue = ch.getChannelsMatchType(type));
+	if (getChannelTypeMappingForward(type) !== "UNCATEGORISED") return (e.returnValue = ch.getChannelsMatchType(type));
 	const types = getChannelTypeMappingBackward(type) as FixtureChannelType[];
 	const returnChannels: FixtureChannel[] = [];
 	types.forEach((type) => {
@@ -176,12 +185,8 @@ desk.groups.on("itemAdd", (group: GroupPaletteItem) => ipcSend("groupAdd", Group
 desk.groups.on("itemDelete", (id: number | Set<number>) => ipcSend("groupDelete", id));
 desk.groups.on("itemMove", (id1: number, id2: number) => ipcSend("groupMove", id1, id2));
 
-ipcMain.on("groupAdd", (e, id: number, channels: Set<number>) =>
-	desk.groups.addItem(new GroupPaletteItem(desk.groups.getPaletteData(), id, channels))
-);
-ipcMain.on("groupDelete", (e, id: number | Set<number>) =>
-	typeof id == "number" ? desk.groups.removeItem(id) : desk.groups.removeItems(id)
-);
+ipcMain.on("groupAdd", (e, id: number, channels: Set<number>) => desk.groups.addItem(new GroupPaletteItem(desk.groups.getPaletteData(), id, channels)));
+ipcMain.on("groupDelete", (e, id: number | Set<number>) => (typeof id == "number" ? desk.groups.removeItem(id) : desk.groups.removeItems(id)));
 ipcMain.on("groupMove", (e, id1: number, id2: number) => desk.groups.moveItem(id1, id2));
 ipcMain.on("getGroup", (e, id: number) => (e.returnValue = GroupPaletteItem.serialize(desk.groups.getItem(id))));
 ipcMain.on("getGroups", (e, ids: Set<number>) => {
@@ -199,26 +204,242 @@ ipcMain.on("getAllGroups", (e) => {
 	e.returnValue = allowedData;
 });
 
+// -------- \\
+// Palettes \\
+// -------- \\
+
+function getProfileIdentifierFromChannels(channels: Set<number>) {
+	return Array.from(
+		new Set(
+			Array.from(channels).map((ch) => {
+				const channel = desk.patch.getChannel(ch);
+				return { id: channel.profile.id, options: channel.profile.options };
+			})
+		)
+	);
+}
+
+function getProfileValuesFromCategory(category: string, selectedChannels: Set<number>): Map<ProfileTypeIdentifier, { addressOffset: number; value: number }> {
+	const paletteData = new Map();
+	selectedChannels.forEach((ch) => {
+		(getChannelTypeMappingBackward(category) as FixtureChannelType[]).forEach((type) => {
+			const channel = desk.patch.getChannel(ch);
+			channel.getChannelsMatchType(type).forEach((address) => {
+				const out = channel.output[address.addressOffset];
+				if (out.programmerVal < 0) {
+					return;
+				}
+				// ! This determines whether outputs set by playbacks are recorded into palettes
+				// todo: turn this into a user defined setting
+				const value = out.programmerVal >= 0 ? out.programmerVal : out.val;
+				paletteData.set({ id: channel.profile.id, options: channel.profile.options }, { addressOffset: address.addressOffset, value });
+			});
+		});
+	});
+	return paletteData;
+}
+
+function getChannelValues(selectedChannels: Set<number>): Map<ChannelAddress, number> {
+	const paletteData = new Map();
+	selectedChannels.forEach((ch) => {
+		const channel = desk.patch.getChannel(ch);
+		channel.channelMap.forEach((address) => {
+			const out = channel.output[address.addressOffset];
+			if (out.programmerVal < 0) {
+				return;
+			}
+			// ! This determines whether outputs set by playbacks are recorded into palettes
+			// todo: turn this into a user defined setting
+			const value = out.programmerVal >= 0 ? out.programmerVal : out.val;
+			paletteData.set({ channel: channel.id, address: address.addressOffset }, value);
+		});
+	});
+	return paletteData;
+}
+
+ipcMain.on("getProfileIdentifiersFromChannels", (e, channels) => (e.returnValue = getProfileIdentifierFromChannels(channels)));
+
+ipcMain.on("getAllPalettes", (e, data) => {
+	// ! is there not a way to make this cleaner?
+	const categoryKey = data.category.toLowerCase() as keyof typeof desk;
+	if (!desk[categoryKey]) return (e.returnValue = {});
+	const allowedData = new Map();
+	(desk[categoryKey] as Palette<any>).getAllItems().forEach((v, k) => {
+		allowedData.set(k, GenericPaletteItem.serialize(v));
+	});
+	return (e.returnValue = allowedData);
+});
+
+// Colour \\
+
+desk.colour.on("itemAdd", (item) => ipcSend("colourPaletteAdd", GenericPaletteItem.serialize(item as GenericPaletteItem)));
+desk.colour.on("itemDelete", (id) => ipcSend("colourPaletteDelete", id));
+desk.colour.on("itemMove", (id1: number, id2: number) => ipcSend("colourPaletteMove", id1, id2));
+desk.colour.on("itemUpdate", (item) => ipcSend("colourPaletteUpdate", GenericPaletteItem.serialize(item as GenericPaletteItem)));
+
+ipcMain.on("colourPaletteRecord", (e, paletteId: number, selectedChannels: Set<number>) => {
+	const paletteData = getProfileValuesFromCategory("COLOUR", selectedChannels);
+	desk.colour.addItem(new GenericPaletteItem(desk.colour.getPaletteData(), paletteId, paletteData));
+});
+
+ipcMain.on("colourPaletteDelete", (e, id: number | Set<number>) => (typeof id == "number" ? desk.colour.removeItem(id) : desk.colour.removeItems(id)));
+ipcMain.on("colourPaletteMove", (e, id1: number, id2: number) => desk.colour.moveItem(id1, id2));
+ipcMain.on("colourPaletteName", (e, id: number, name: string) => desk.colour.getItem(id).setName(name));
+
+// Beam \\
+
+desk.beam.on("itemAdd", (item) => ipcSend("beamPaletteAdd", GenericPaletteItem.serialize(item as GenericPaletteItem)));
+desk.beam.on("itemDelete", (id) => ipcSend("beamPaletteDelete", id));
+desk.beam.on("itemMove", (id1: number, id2: number) => ipcSend("beamPaletteMove", id1, id2));
+desk.beam.on("itemUpdate", (item) => ipcSend("beamPaletteUpdate", GenericPaletteItem.serialize(item as GenericPaletteItem)));
+
+ipcMain.on("beamPaletteRecord", (e, paletteId: number, selectedChannels: Set<number>) => {
+	const paletteData = getProfileValuesFromCategory("BEAM", selectedChannels);
+	desk.beam.addItem(new GenericPaletteItem(desk.beam.getPaletteData(), paletteId, paletteData));
+});
+
+ipcMain.on("beamPaletteDelete", (e, id: number | Set<number>) => (typeof id == "number" ? desk.beam.removeItem(id) : desk.beam.removeItems(id)));
+ipcMain.on("beamPaletteMove", (e, id1: number, id2: number) => desk.beam.moveItem(id1, id2));
+ipcMain.on("beamPaletteName", (e, id: number, name: string) => desk.beam.getItem(id).setName(name));
+
+// Shape \\
+desk.shape.on("itemAdd", (item) => ipcSend("shapePaletteAdd", GenericPaletteItem.serialize(item as GenericPaletteItem)));
+desk.shape.on("itemDelete", (id) => ipcSend("shapePaletteDelete", id));
+desk.shape.on("itemMove", (id1: number, id2: number) => ipcSend("shapePaletteMove", id1, id2));
+desk.shape.on("itemUpdate", (item) => ipcSend("shapePaletteUpdate", GenericPaletteItem.serialize(item as GenericPaletteItem)));
+
+ipcMain.on("shapePaletteRecord", (e, paletteId: number, selectedChannels: Set<number>) => {
+	const paletteData = getProfileValuesFromCategory("SHAPE", selectedChannels);
+	desk.shape.addItem(new GenericPaletteItem(desk.shape.getPaletteData(), paletteId, paletteData));
+});
+
+ipcMain.on("shapePaletteDelete", (e, id: number | Set<number>) => (typeof id == "number" ? desk.shape.removeItem(id) : desk.shape.removeItems(id)));
+ipcMain.on("shapePaletteMove", (e, id1: number, id2: number) => desk.shape.moveItem(id1, id2));
+ipcMain.on("shapePaletteName", (e, id: number, name: string) => desk.shape.getItem(id).setName(name));
+
+// Position \\
+
+desk.position.on("itemAdd", (item) => ipcSend("positionPaletteAdd", GenericPaletteItem.serialize(item as GenericPaletteItem)));
+desk.position.on("itemDelete", (id) => ipcSend("positionPaletteDelete", id));
+desk.position.on("itemMove", (id1: number, id2: number) => ipcSend("positionPaletteMove", id1, id2));
+desk.position.on("itemUpdate", (item) => ipcSend("positionPaletteUpdate", GenericPaletteItem.serialize(item as GenericPaletteItem)));
+
+ipcMain.on("positionPaletteRecord", (e, paletteId: number, selectedChannels: Set<number>) => {
+	const paletteData = getProfileValuesFromCategory("POSITION", selectedChannels);
+	desk.position.addItem(new GenericPaletteItem(desk.position.getPaletteData(), paletteId, paletteData));
+});
+
+ipcMain.on("positionPaletteDelete", (e, id: number | Set<number>) => (typeof id == "number" ? desk.position.removeItem(id) : desk.position.removeItems(id)));
+ipcMain.on("positionPaletteMove", (e, id1: number, id2: number) => desk.position.moveItem(id1, id2));
+ipcMain.on("positionPaletteName", (e, id: number, name: string) => desk.position.getItem(id).setName(name));
+
+// Function \\
+
+desk.function.on("itemAdd", (item) => ipcSend("functionPaletteAdd", GenericPaletteItem.serialize(item as GenericPaletteItem)));
+desk.function.on("itemDelete", (id) => ipcSend("functionPaletteDelete", id));
+desk.function.on("itemMove", (id1: number, id2: number) => ipcSend("functionPaletteMove", id1, id2));
+desk.function.on("itemUpdate", (item) => ipcSend("functionPaletteUpdate", GenericPaletteItem.serialize(item as GenericPaletteItem)));
+
+ipcMain.on("functionPaletteRecord", (e, paletteId: number, selectedChannels: Set<number>) => {
+	const paletteData = getProfileValuesFromCategory("FUNCTION", selectedChannels);
+	desk.function.addItem(new GenericPaletteItem(desk.function.getPaletteData(), paletteId, paletteData));
+});
+
+ipcMain.on("functionPaletteDelete", (e, id: number | Set<number>) => (typeof id == "number" ? desk.function.removeItem(id) : desk.function.removeItems(id)));
+ipcMain.on("functionPaletteMove", (e, id1: number, id2: number) => desk.function.moveItem(id1, id2));
+ipcMain.on("functionPaletteName", (e, id: number, name: string) => desk.function.getItem(id).setName(name));
+
+// Uncategorised \\
+
+desk.uncategorised.on("itemAdd", (item) => ipcSend("uncategorisedPaletteAdd", GenericPaletteItem.serialize(item as GenericPaletteItem)));
+desk.uncategorised.on("itemDelete", (id) => ipcSend("uncategorisedPaletteDelete", id));
+desk.uncategorised.on("itemMove", (id1: number, id2: number) => ipcSend("uncategorisedPaletteMove", id1, id2));
+desk.uncategorised.on("itemUpdate", (item) => ipcSend("uncategorisedPaletteUpdate", GenericPaletteItem.serialize(item as GenericPaletteItem)));
+
+ipcMain.on("uncategorisedPaletteRecord", (e, paletteId: number, selectedChannels: Set<number>) => {
+	const paletteData = getProfileValuesFromCategory("UNCATEGORISED", selectedChannels);
+	desk.uncategorised.addItem(new GenericPaletteItem(desk.uncategorised.getPaletteData(), paletteId, paletteData));
+});
+
+ipcMain.on("uncategorisedPaletteDelete", (e, id: number | Set<number>) =>
+	typeof id == "number" ? desk.uncategorised.removeItem(id) : desk.uncategorised.removeItems(id)
+);
+ipcMain.on("uncategorisedPaletteMove", (e, id1: number, id2: number) => desk.uncategorised.moveItem(id1, id2));
+ipcMain.on("uncategorisedPaletteName", (e, id: number, name: string) => desk.uncategorised.getItem(id).setName(name));
+
 // ---- \\
 // Cues \\
 // ---- \\
 
-desk.cues.on("itemAdd", (cue: CuePaletteItem) => ipcSend("cueAdd", cue));
+desk.cues.on("itemAdd", (cue: CuePaletteItem) => ipcSend("cueAdd", CuePaletteItem.serialize(cue)));
 desk.cues.on("itemDelete", (id: number | Set<number>) => ipcSend("cueDelete", id));
 desk.cues.on("itemMove", (id1: number, id2: number) => ipcSend("cueMove", id1, id2));
 
-// todo: work out how im going to store cue data and where that data is coming from
-// ipcMain.on("cueAdd", (e, cueOptions: CueOptions) =>
-// 	desk.cues.addCue(new Cue({ ...cueOptions, channelData: universe.getUniverseBuffer() }))
-// );
-ipcMain.on("cueDelete", (e, id: number | Set<number>) =>
-	typeof id == "number" ? desk.cues.removeItem(id) : desk.cues.removeItems(id)
-);
+ipcMain.on("cueAdd", (e, cueId: number, selectedChannels: Set<number>) => {
+	const paletteData = getChannelValues(selectedChannels);
+	desk.cues.addItem(new CuePaletteItem(desk.cues.getPaletteData(), cueId, paletteData));
+});
+ipcMain.on("cueDelete", (e, id: number | Set<number>) => (typeof id == "number" ? desk.cues.removeItem(id) : desk.cues.removeItems(id)));
 ipcMain.on("cueMove", (e, id1: number, id2: number) => desk.cues.moveItem(id1, id2));
-ipcMain.on("getCue", (e, id: number) => (e.returnValue = desk.cues.getItem(id)));
-ipcMain.on("getCues", (e, ids: Set<number>) => (e.returnValue = desk.cues.getItems(ids)));
-ipcMain.on("getAllCues", (e) => (e.returnValue = desk.cues.getAllItems()));
+
+ipcMain.on("getCue", (e, id: number) => (e.returnValue = CuePaletteItem.serialize(desk.cues.getItem(id))));
+ipcMain.on("getCues", (e, ids: Set<number>) => {
+	const allowedData = new Map();
+	desk.cues.getItems(ids).forEach((v, k) => {
+		allowedData.set(k, CuePaletteItem.serialize(v));
+	});
+	e.returnValue = allowedData;
+});
+ipcMain.on("getAllCues", (e) => {
+	const allowedData = new Map();
+	desk.cues.getAllItems().forEach((v, k) => {
+		allowedData.set(k, CuePaletteItem.serialize(v));
+	});
+	e.returnValue = allowedData;
+});
 
 // --------- \\
 // Playbacks \\
 // --------- \\
+
+// desk.playbacks.on("requestAddressUpdate", (ca: ChannelAddress, value: number) => {
+// 	desk.patch.getChannel(ca.channel).setAddress(ca.address, value, false);
+// });
+
+ipcMain.on("playbackAdd", (e, pbId, source: number | Set<number>) => {
+	let type: StackCueSourceType;
+	let content;
+	if(typeof source == "number") {
+		type = "cue";
+		content = source;
+	} else {
+		type = "raw";
+		content = getChannelValues(source);
+	}
+	const cue = new StackCue(pbId, "", {type, content});
+	
+	const transitions = new Map();
+	getTypes().forEach(chType => {
+		transitions.set(chType, {delay: 0, duration: 3000});
+	});
+	cue.cueTransitions = transitions;
+	desk.playbacks.addCue(cue);
+
+	console.log(inspect(desk.playbacks, {depth: null}));
+});
+
+// ipcMain.on("playbackIntensity", (e, intensity: number) => {
+// 	desk.playbacks.setIntensity(intensity);
+// });
+
+ipcMain.on("playbackGo", () => {
+	desk.playbacks.go();
+});
+
+ipcMain.on("playbackStop", () => {
+	desk.playbacks.stop();
+});
+
+// ipcMain.on("playbackPause", () => {
+// 	desk.playbacks.pause();
+// });

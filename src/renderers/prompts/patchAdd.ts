@@ -1,4 +1,4 @@
-// import styles
+import "../../../css/style.scss";
 
 import { Profile } from "lx_console_backend";
 import { PromptIpc } from "../../main/prompts/prompt_preload";
@@ -111,7 +111,7 @@ export function setPatchType(): void {
 		const mode = currentPatchInfo.fixtureProfile.channelModes[i];
 		const elt = document.createElement("option");
 		elt.value = i.toString();
-		elt.textContent = mode.count.toString();
+		elt.textContent = `${mode.count.toString()} ${mode.name ? mode.name : ""}`;
 		if (i == 0) elt.selected = true;
 		$("#fixtureChannelModeSelect").append(elt);
 	}
