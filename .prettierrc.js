@@ -1,3 +1,7 @@
+
+// .prettierrc.js
+
+
 "use strict";
 
 module.exports = {

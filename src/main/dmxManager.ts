@@ -1,3 +1,19 @@
+/* 
+ *  Copyright (C) 2022  Daniel Farquharson
+ *  
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, version 3 (GPLv3)
+ *  
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *  
+ *  See https://github.com/LordFarquhar/lx_console_app/blob/main/LICENSE an 
+ *  implementation of GPLv3 (https://www.gnu.org/licenses/gpl-3.0.html)
+ */
+
 import { ipcMain } from "electron";
 import {
 	desk,
@@ -12,12 +28,12 @@ import {
 	Palette,
 	ProfileTypeIdentifier,
 	StackCue,
-	StackCueSourceType
+	StackCueSourceType,
+	StackCueData
 } from "lx_console_backend";
 import { Universe } from "dmxuniverse";
-import { getChannelTypeMappingForward, getChannelTypeMappingBackward, getCategories, getTypes } from "./OFLManager";
+import { getChannelTypeMappingForward, getChannelTypeMappingBackward, getTypes } from "./OFLManager";
 import { mainWindow } from "./main";
-import { inspect } from "util";
 
 function ipcSend(channel: string, ...args: any[]) {
 	mainWindow.webContents.send(channel, ...args);
@@ -402,9 +418,7 @@ ipcMain.on("getAllCues", (e) => {
 // Playbacks \\
 // --------- \\
 
-// desk.playbacks.on("requestAddressUpdate", (ca: ChannelAddress, value: number) => {
-// 	desk.patch.getChannel(ca.channel).setAddress(ca.address, value, false);
-// });
+desk.playbacks.on("itemAdd", (item) => ipcSend("playbackCueAdd", StackCue.serialize(item)));
 
 ipcMain.on("playbackAdd", (e, pbId, source: number | Set<number>) => {
 	let type: StackCueSourceType;
@@ -424,8 +438,6 @@ ipcMain.on("playbackAdd", (e, pbId, source: number | Set<number>) => {
 	});
 	cue.cueTransitions = transitions;
 	desk.playbacks.addCue(cue);
-
-	console.log(inspect(desk.playbacks, {depth: null}));
 });
 
 // ipcMain.on("playbackIntensity", (e, intensity: number) => {
@@ -443,3 +455,11 @@ ipcMain.on("playbackStop", () => {
 // ipcMain.on("playbackPause", () => {
 // 	desk.playbacks.pause();
 // });
+
+ipcMain.on("getAllStackCues", (e) => {
+	const allowedData: StackCueData[] = [];
+	desk.playbacks.cues.forEach((c) => {
+		allowedData.push(StackCue.serialize(c));
+	});
+	e.returnValue = allowedData;
+});

@@ -33,18 +33,21 @@
 
     <body>
         <div class="promptContainer">
-            <h4 class="modal-title">Enter Text</h4>
+            <h4 class="modal-title">Set Times</h4>
 
             <div id="textInputModalMessage" class="modal-message bad"></div>
-            <form onsubmit="prompt_textInput_renderer.submitText()">
-                <input type="text" name="textInput" id="textInput" autofocus><br>
-
+            <form onsubmit="prompt_transitionTimings_renderer.submit()">
+                <label for="delayTime">Delay: </label>
+                <input type="number" min="0" name="delayTime" id="delayTime" autofocus><br>
+                <label for="delayTime">Fade: </label>
+                <input type="number" min="0" name="fadeTime" id="fadeTime"><br>
+                
                 <input type="submit" value="Submit" id="textSubmit">
-                <button onclick="prompt_textInput_renderer.windowInstruction('close')">Cancel</button>
+                <button onclick="prompt_transitionTimings_renderer.windowInstruction('close')">Cancel</button>
             </form>
-        </div>
 
-        <script src="../../out/prompt_textInput_renderer.js"></script>
+        </div>
+        <script src="../../out/prompt_transitionTimings_renderer.js"></script>
     </body>
 
 </html>

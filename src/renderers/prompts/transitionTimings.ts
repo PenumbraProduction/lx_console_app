@@ -14,8 +14,26 @@
  *  implementation of GPLv3 (https://www.gnu.org/licenses/gpl-3.0.html)
  */
 
-export function isNumber(d: any): boolean {
-    if(isNaN(d)) return false;
-	if (typeof d == "number") return true;
-    return !isNaN(parseInt(d));
+import "../../../css/style.scss";
+
+import { PromptIpc } from "../../main/prompts/prompt_preload";
+
+type BridgedWindow = Window &
+	typeof globalThis & {
+		promptIpc: any;
+	};
+
+export const ipc: PromptIpc = (window as BridgedWindow).promptIpc;
+
+const promptId = document.location.hash.replace("#", "");
+const options = ipc.ipcSendSync("prompt-get-options:" + promptId);
+
+console.log(options);
+
+export function windowInstruction(instruction: string) {
+	ipc.ipcSend("prompt-window-control:" + promptId, instruction);
+}
+
+export function submit() {
+	ipc.ipcSend("prompt-post-data:" + promptId, { delayTime: $("#delayTime").val(), fadeTime: $("#fadeTime").val() });
 }

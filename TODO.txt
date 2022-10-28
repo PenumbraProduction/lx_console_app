@@ -1,0 +1,1 @@
+quick access panel, for bump buttons, hold down to temporarily activate, when released returns to standard values

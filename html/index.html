@@ -1,3 +1,19 @@
+<!-- 
+  Copyright (C) 2022  Daniel Farquharson
+  
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, version 3 (GPLv3)
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  See https://github.com/LordFarquhar/lx_console_app/blob/main/LICENSE an 
+  implementation of GPLv3 (https://www.gnu.org/licenses/gpl-3.0.html)
+ -->
+
 <!doctype html>
 <html lang="en" style="height: 100%">
 
@@ -221,15 +237,32 @@
                     <div id="playbackContainer">
                         <div id="playbackContainerLeft">
                             <div id="playbackController">
-                                <div class="btn" id="goButton">Go</div>
-                                <div class="btn" id="pauseButton">Pause</div>
+                                <div class="button w-2" id="goButton" onclick="renderer.api.ipcSend('playbackGo')">Go</div>
+                                <!-- <div class="button w-2" id="pauseButton" onclick="renderer.api.ipcSend('playbackPause')">Pause</div> -->
+                                <div class="button w-2" id="stopButton" onclick="renderer.api.ipcSend('playbackStop')">Stop</div>
                             </div>
-                            <div id="playbackStack">
-                                
+                            <div id="playbackStack" class="scroll-enabled">
+                                <div class="stackCue">
+                                    <div class="stackCueProp stackCueId">1</div>
+                                    <div class="stackCueProp stackCueName">Hello</div>
+                                    <div class="stackCueProp stackCueTimings">
+                                        <div class="stackCueTimingsButton"><i data-feather="clock"></i></div>
+                                        <div class="stackCueTimingsContainer">
+                                            <div class="stackCueTimingAttr stackCueTimingsIntensity"><span>Intensity</span><span>D:0 F:3</span></div>
+                                            <div class="stackCueTimingAttr stackCueTimingsColour"><span>Colour:</span><span>D:0 F:3</span></div>
+                                            <div class="stackCueTimingAttr stackCueTimingsBeam"><span>Beam:</span><span>D:0 F:3</span></div>
+                                            <div class="stackCueTimingAttr stackCueTimingsShape"><span>Shape:</span><span>D:0 F:3</span></div>
+                                            <div class="stackCueTimingAttr stackCueTimingsPosition"><span>Position:</span><span>D:0 F:3</span></div>
+                                            <div class="stackCueTimingAttr stackCueTimingsFunction"><span>Function:</span><span>D:0 F:3</span></div>
+                                            <div class="stackCueTimingAttr stackCueTimingsUncategorised"><span>Uncategorised:</span><span>D:0 F:3</span></div>
+                                        </div>
+                                    </div>
+                                    <div class="stackCueProp stackCueOptions"><i data-feather="tool"></i></div>
+                                </div>
                             </div>
                         </div>
-                        <div id="playbackSectionRight">
-                            <div id="playbackFader">FADER</div>
+                        <div id="playbackContainerRight">
+                            <div id="playbackFaderContainer"><input type="range" orient="vertical" id=""></div>
                         </div>
                     </div>
                 </div>

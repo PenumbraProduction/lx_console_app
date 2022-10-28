@@ -1,3 +1,19 @@
+/* 
+ *  Copyright (C) 2022  Daniel Farquharson
+ *  
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, version 3 (GPLv3)
+ *  
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *  
+ *  See https://github.com/LordFarquhar/lx_console_app/blob/main/LICENSE an 
+ *  implementation of GPLv3 (https://www.gnu.org/licenses/gpl-3.0.html)
+ */
+
 import { v4 } from "uuid";
 import { BrowserWindow, ipcMain, IpcMainEvent, screen } from "electron";
 import * as remote from "@electron/remote/main";
@@ -30,6 +46,12 @@ export const createPromptWindow = (parent: BrowserWindow, file: string, options:
 		window.setMenuBarVisibility(false);
 		// window.setAlwaysOnTop(true, "modal-panel");
 		remote.enable(window.webContents);
+
+		window.webContents.on("before-input-event", (e, input) => {
+			if(input.key == "Escape") {
+				cleanup();
+			}
+		});
 
 		const getOptionsListener = (e: IpcMainEvent) => {
 			e.returnValue = options;

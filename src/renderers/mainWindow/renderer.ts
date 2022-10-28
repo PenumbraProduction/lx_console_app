@@ -1,3 +1,19 @@
+/* 
+ *  Copyright (C) 2022  Daniel Farquharson
+ *  
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, version 3 (GPLv3)
+ *  
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *  
+ *  See https://github.com/LordFarquhar/lx_console_app/blob/main/LICENSE an 
+ *  implementation of GPLv3 (https://www.gnu.org/licenses/gpl-3.0.html)
+ */
+
 import { Event as ElectronRenderEvent } from "electron/renderer";
 import { MainAPI } from "../../main/preload";
 import { isNumber } from "../../common/util/is";
@@ -18,7 +34,8 @@ import {
 	isWithinRange,
 	PaletteItem,
 	PercentToDMX,
-	ProfileTypeIdentifier
+	ProfileTypeIdentifier,
+	StackCueData
 } from "lx_console_backend";
 import { CommandLine, ControlKey, Key, MetaKey, ModifierKey, NumericalKey } from "../../common/CommandLine";
 import p5 from "p5";
@@ -233,7 +250,7 @@ function generateChannelOutputTable(channels: Array<number>) {
 	const container = document.createElement("div");
 	container.id = "channelOutput";
 	container.classList.add("outputs");
-	channels = channels.sort();
+	channels = channels.sort((a, b) => a - b);
 	for (let i = 0; i < channels.length; i++) {
 		const box = document.createElement("div");
 		const ch = document.createElement("span");
@@ -320,7 +337,6 @@ function renderAttributeControllers(fixtures: Map<string, FixtureAttributeMap>) 
 	ATTRIBUTE_CATEGORIES.forEach((attr) => {
 		$(`#${attr.toLowerCase()}ControlsContainer`).empty();
 		const fxs = fixtures.get(attr);
-		// console.log(fxs);
 		fxs.forEach((v, k) => {
 			const profileChannelMode = k.split("_")[1];
 			const fixtureContainerElt = document.createElement("div");
@@ -498,6 +514,71 @@ export function renderCues() {
 	});
 }
 
+export function playbackGo(cueId: number) {
+	$(".stackCue").removeClass("highlight");
+	$(`#stackCue-${cueId}`).addClass("highlight");
+}
+
+export function renderPlayback() {
+	$("#playbackStack").empty();
+	const stackCues = api.ipcSendSync("getAllStackCues") as StackCueData[];
+	stackCues.forEach(c => {
+		const stackCueELt = document.createElement("div");
+		stackCueELt.classList.add("stackCue")
+		stackCueELt.id = `stackCue${c.id}`;
+
+		const stackCueIdElt = document.createElement("div");
+		stackCueIdElt.classList.add("stackCueProp");
+		stackCueIdElt.classList.add("stackCueId");
+		stackCueIdElt.textContent = c.id;
+		stackCueELt.appendChild(stackCueIdElt);
+
+		const stackCueNameElt = document.createElement("div");
+		stackCueNameElt.classList.add("stackCueProp");
+		stackCueNameElt.classList.add("stackCueName");
+		stackCueNameElt.textContent = c.name;
+		stackCueELt.appendChild(stackCueNameElt);
+
+		const stackCueTimingsElt = document.createElement("div");
+		stackCueTimingsElt.classList.add("stackCueProp");
+		stackCueTimingsElt.classList.add("stackCueTimings");
+		stackCueELt.appendChild(stackCueTimingsElt);
+
+		const stackCueTimingsButtonElt = document.createElement("div");
+		stackCueTimingsButtonElt.classList.add("stackCueTimingsButton");
+		stackCueTimingsButtonElt.innerHTML = featherIcons["clock"].toSvg();
+		stackCueTimingsElt.appendChild(stackCueTimingsButtonElt);
+
+		const stackCueTimingsContainerElt = document.createElement("div");
+		stackCueTimingsContainerElt.classList.add("stackCueTimingsContainer");
+		stackCueTimingsElt.appendChild(stackCueTimingsContainerElt);
+
+		c.cueTransitions.forEach((tr, trName) => {
+			const trElt = document.createElement("div");
+			trElt.classList.add("stackCueTimingAttr")
+			trElt.classList.add("stackCueTimingsIntensity")
+
+			const trTextElt = document.createElement("span");
+			trTextElt.textContent = trName;
+			trElt.appendChild(trTextElt);
+
+			const trTimeElt = document.createElement("span");
+			trTimeElt.textContent = `D:${tr.delay} F:${tr.duration}`;
+			trElt.appendChild(trTimeElt);
+
+			stackCueTimingsContainerElt.appendChild(trElt);
+		});
+
+		const stackCueOptionsElt = document.createElement("div");
+		stackCueOptionsElt.classList.add("stackCueProp");
+		stackCueOptionsElt.classList.add("stackCueOptions");
+		stackCueOptionsElt.innerHTML = featherIcons["tool"].toSvg();
+		stackCueELt.appendChild(stackCueOptionsElt);
+
+		$("#playbackStack").append(stackCueELt);
+	});
+}
+
 // --- \\
 // DMX \\
 // --- \\
@@ -518,10 +599,12 @@ export function setSelectedChannels(sc: Set<number>) {
 	const attributes = new Map();
 	ATTRIBUTE_CATEGORIES.forEach((type) => {
 		const attr = new Map();
+		console.log(type)
 		selectedChannels.forEach((ch) => {
 			const addressChannels = api.ipcSendSync("getChannelsMatchType", ch, type);
 			if (!addressChannels.length) return;
 			const chData = api.ipcSendSync("getChannel", ch);
+			console.log(chData)
 			const profileId = chData.profile.id;
 			const profileChannelMode = chData.profile.options.channelMode;
 			if (!attr.has(`${profileId}_${profileChannelMode}`)) attr.set(`${profileId}_${profileChannelMode}`, { channelData: chData, addressChannels });
@@ -693,6 +776,9 @@ api.ipcHandle("cueAdd", () => renderCues());
 api.ipcHandle("cueDelete", () => renderCues());
 api.ipcHandle("cueMove", () => renderCues());
 
+api.ipcHandle("playbackGo", (e, cueId) => playbackGo(cueId));
+api.ipcHandle("playbackCueAdd", () => renderPlayback());
+
 function attributeSetByProfile(target: string | { targetId: string; targetOptions: string }, addressOffset: number, addressValue: number) {
 	if (typeof target == "string") {
 		const [targetId, targetOptions] = target.split("_");
@@ -831,6 +917,23 @@ cli.setExecFunc((tokens: string[]) => {
 	}
 
 	if (setIntensity()) return true;
+
+	if(tokens[0] == "Go") {
+		if(isNumber(tokens[1])) {
+			console.log("TODO: Goto specified Cue ID");
+		}
+		api.ipcSend("playbackGo");
+		return true;
+	}
+
+	if(tokens[0] == "Time") {
+		if(ATTRIBUTE_CATEGORIES.includes(tokens[1].toUpperCase())) {
+			const timings = api.ipcSendSync("createPrompt", {file:"transition_timings", options: {}});
+			console.log(timings);
+			if(!timings) return false;
+			return true;
+		}
+	}
 
 	if (tokens[0] == "Name") {
 		if (tokens[1] == "Patch") {
@@ -995,6 +1098,7 @@ window.addEventListener("keydown", (e: KeyboardEvent) => {
 		if (key_l == "b") return cli.addToken("Beam");
 		if (key_l == "f") return cli.addToken("Function");
 		if (key_l == "u") return cli.addToken("Uncategorised");
+		if (key_l == "g") return cli.addToken("Go");
 
 		if (key_l == "x") return cli.addToken("Cues");
 		if (key_l == "k") return cli.addToken("Playbacks");
@@ -1010,6 +1114,7 @@ window.addEventListener("keydown", (e: KeyboardEvent) => {
 
 	if (key_l == "d") return setSelectedChannels(new Set());
 	if (key_l == "a") return cli.addToken("Add");
+	if (key_l == "t") return cli.addToken("Time");
 	if (key_l == "p") return cli.addToken("Patch");
 	if (key_l == "r") return cli.addToken("Record");
 	if (key_l == "u") return cli.addToken("Update");

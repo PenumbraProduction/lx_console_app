@@ -1,9 +1,14 @@
+
+// webpack.config.js
+
+
 module.exports = {
 	entry: {
 		renderer: "./src/renderers/mainWindow/renderer.ts",
 		splash_renderer: "./src/renderers/splashWindow/renderer.ts",
 		prompt_patchAdd_renderer: "./src/renderers/prompts/patchAdd.ts",
-		prompt_textInput_renderer: "./src/renderers/prompts/textInput.ts"
+		prompt_textInput_renderer: "./src/renderers/prompts/textInput.ts",
+		prompt_transitionTimings_renderer: "./src/renderers/prompts/transitionTimings.ts"
 	},
 	output: {
 		filename: "[name].js",
