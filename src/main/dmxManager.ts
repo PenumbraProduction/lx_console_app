@@ -1,20 +1,21 @@
-/* 
+/*
  *  Copyright (C) 2022  Daniel Farquharson
- *  
+ *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, version 3 (GPLv3)
- *  
+ *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *  
- *  See https://github.com/LordFarquhar/lx_console_app/blob/main/LICENSE an 
+ *
+ *  See https://github.com/LordFarquhar/lx_console_app/blob/main/LICENSE an
  *  implementation of GPLv3 (https://www.gnu.org/licenses/gpl-3.0.html)
  */
 
 import { ipcMain } from "electron";
+export { desk } from "lx_console_backend";
 import {
 	desk,
 	Channel,
@@ -42,12 +43,16 @@ function ipcSend(channel: string, ...args: any[]) {
 const universe = new Universe();
 
 export async function init() {
-	const port = await Universe.findInterfacePort().catch((e) => console.log(e));
+	const port = await Universe.findInterfacePort().catch(() => null); // (e) => console.log(e)
 	if (port) await universe.init(port.path);
 }
 
 export async function close() {
 	await universe.close().catch((e) => console.log(e));
+}
+
+export function serializeAll() {
+	return { empty: "object" };
 }
 
 const serialport = {
@@ -181,11 +186,11 @@ ipcMain.on("getChannelsByProfileType", (e, profileId, options?) => {
 
 ipcMain.on("getChannelsMatchType", (e, channel: number, type: FixtureChannelType) => {
 	const ch = desk.patch.getChannel(channel);
-	if (getChannelTypeMappingForward(type) !== "UNCATEGORISED") return (e.returnValue = ch.getChannelsMatchType(type));
+	// if (getChannelTypeMappingForward(type) !== "UNCATEGORISED") return (e.returnValue = ch.getChannelsMatchType(type));
 	const types = getChannelTypeMappingBackward(type) as FixtureChannelType[];
 	const returnChannels: FixtureChannel[] = [];
-	types.forEach((type) => {
-		returnChannels.push(...ch.getChannelsMatchType(type));
+	types.forEach((t) => {
+		returnChannels.push(...ch.getChannelsMatchType(t));
 	});
 	e.returnValue = returnChannels;
 });
@@ -280,7 +285,7 @@ ipcMain.on("getAllPalettes", (e, data) => {
 	const categoryKey = data.category.toLowerCase() as keyof typeof desk;
 	if (!desk[categoryKey]) return (e.returnValue = {});
 	const allowedData = new Map();
-	(desk[categoryKey] as Palette<any>).getAllItems().forEach((v, k) => {
+	(desk[categoryKey] as Palette<any, any>).getAllItems().forEach((v, k) => {
 		allowedData.set(k, GenericPaletteItem.serialize(v));
 	});
 	return (e.returnValue = allowedData);
@@ -419,25 +424,33 @@ ipcMain.on("getAllCues", (e) => {
 // --------- \\
 
 desk.playbacks.on("itemAdd", (item) => ipcSend("playbackCueAdd", StackCue.serialize(item)));
+desk.playbacks.on("itemUpdate", () => {
+	console.log("emitted");
+	ipcSend("playbackItemUpdate");
+});
 
 ipcMain.on("playbackAdd", (e, pbId, source: number | Set<number>) => {
 	let type: StackCueSourceType;
 	let content;
-	if(typeof source == "number") {
+	if (typeof source == "number") {
 		type = "cue";
 		content = source;
 	} else {
 		type = "raw";
 		content = getChannelValues(source);
 	}
-	const cue = new StackCue(pbId, "", {type, content});
-	
+	const cue = new StackCue(pbId, "", { type, content });
+
 	const transitions = new Map();
-	getTypes().forEach(chType => {
-		transitions.set(chType, {delay: 0, duration: 3000});
+	getTypes().forEach((chType) => {
+		transitions.set(chType, { delay: 0, duration: 3000 });
 	});
 	cue.cueTransitions = transitions;
 	desk.playbacks.addCue(cue);
+});
+
+ipcMain.on("playbackCueName", (e, id: string, name: string) => {
+	desk.playbacks.cues.find((cue) => cue.id == id).setName(name);
 });
 
 // ipcMain.on("playbackIntensity", (e, intensity: number) => {

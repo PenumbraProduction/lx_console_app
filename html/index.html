@@ -123,6 +123,14 @@
 
                 <div class="screen" id="Home">
                     <div class="title">Home</div>
+
+                    <div class="container-content">
+                        
+                        <h1>Show Files</h1>
+                        <div id="showContainer">
+                            <div class="loader"></div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="screen" id="Help">
@@ -130,6 +138,9 @@
 
                     <div class="container-content">
                         <div id="helpMessage"></div>
+
+
+                        
                     </div>
                 </div>
 
@@ -137,11 +148,14 @@
                     <div class="title">Settings</div>
 
                     <div class="container-content">
+                        <div class="header">General</div>
                         <p>Accent Color</p>
                         <input type="color" id="settingsAccentBgColor">
                         <p>Main Color</p>
                         <input type="color" id="settingsMainBgColor">
-
+                        <p>Save Location</p>
+                        <input type="file" id="saveLocation" webkitdirectory directory>
+                        <div class="header">Show Specific</div>
                         <label class="toggle">
                             <input type="checkbox">
                             <span class="slider"></span>
@@ -151,6 +165,8 @@
 
                 <div class="screen" id="Clock">
                     <div class="title">Clock and Timer</div>
+
+                    <div class="liveClockText">CLOCK</div>
 
                 </div>
 
@@ -240,6 +256,8 @@
                                 <div class="button w-2" id="goButton" onclick="renderer.api.ipcSend('playbackGo')">Go</div>
                                 <!-- <div class="button w-2" id="pauseButton" onclick="renderer.api.ipcSend('playbackPause')">Pause</div> -->
                                 <div class="button w-2" id="stopButton" onclick="renderer.api.ipcSend('playbackStop')">Stop</div>
+                                <div class="button w-2" onclick="renderer.renderPlayback()"><i
+                                    data-feather="refresh-cw"></i></div>
                             </div>
                             <div id="playbackStack" class="scroll-enabled">
                                 <div class="stackCue">
@@ -411,6 +429,30 @@
         <div id="notificationContainer"></div>
 
         <div id="statusBar">
+            <div class="statusbar-item" id="time">
+                <div class="statusbar-item-content">
+                    <div class="feather-container"><i data-feather="clock"></i></div>
+                    <span class="liveClockText">CLOCK</span>
+                </div>
+            </div>
+            <div class="statusbar-item" id="currentShowStatus">
+                <div class="statusbar-item-content">
+                    <div class="feather-container"><i data-feather="file-text"></i></div>
+                    <span id="currentShowStatusText">CURRENT SHOW</span>
+                </div>
+                <div class="statusbar-item-dropdown-content">
+                    <div class="statusbar-item-dropdown-item" onclick="renderer.saveShow()">
+                        <span class="feather-container">
+                            <i data-feather="save"></i>
+                        </span>Save
+                    </div>
+                    <div class="statusbar-item-dropdown-item" onclick="renderer.newShow()">
+                        <span class="feather-container">
+                            <i data-feather="file"></i>
+                        </span>New
+                    </div>
+                </div>
+            </div>
             <div class="statusbar-item" id="dmxInterfaceStatus">
                 <div class="statusbar-item-content">
                     <div class="feather-container"><i data-feather="disc"></i></div>
@@ -446,6 +488,29 @@
                         Update
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <div class="context-menu" id="showContextMenu">
+            <div class="context-menu-section">
+                <span class="context-menu-item" id="showContextMenu-open">
+                    <span class="feather-container">
+                        <i data-feather="folder"></i>
+                    </span>
+                    Open
+                </span>
+                <span class="context-menu-item" id="showContextMenu-rename">
+                    <span class="feather-container">
+                        <i data-feather="type"></i>
+                    </span>
+                    Rename
+                </span>
+                <span class="context-menu-item" id="showContextMenu-delete">
+                    <span class="feather-container">
+                        <i data-feather="delete"></i>
+                    </span>
+                    Delete
+                </span>
             </div>
         </div>
 

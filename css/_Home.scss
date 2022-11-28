@@ -1,0 +1,19 @@
+#Home {
+
+    #showContainer {
+        display: flex;
+        justify-content: flex-start;
+        align-items: flex-start;
+
+        .show {
+            border: 2px solid black;
+            border-radius: 15px;
+            margin: 1vw;
+            padding: 1vw;
+
+            &.currentShow {
+                border: 2px solid var(--accent-bg);
+            }
+        }
+    }
+}

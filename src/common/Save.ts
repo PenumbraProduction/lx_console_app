@@ -15,13 +15,14 @@
  */
 
 import { JsonObject, JsonProperty } from "typescript-json-serializer";
-import { ShowData } from "./ShowFile";
+import { ShowSkeleton } from "./ShowFile";
+import VERSION from "../version";
 
 @JsonObject()
 export class Save {
     @JsonProperty()
-    shows: ShowData[];
+    shows: ShowSkeleton[] = [];
 
     @JsonProperty()
-    version = "1.0.0"; // VERSION CHANGE NOTICE
+    version = VERSION;
 }

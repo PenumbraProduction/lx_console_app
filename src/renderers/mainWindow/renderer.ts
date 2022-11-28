@@ -1,16 +1,16 @@
-/* 
+/*
  *  Copyright (C) 2022  Daniel Farquharson
- *  
+ *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, version 3 (GPLv3)
- *  
+ *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *  
- *  See https://github.com/LordFarquhar/lx_console_app/blob/main/LICENSE an 
+ *
+ *  See https://github.com/LordFarquhar/lx_console_app/blob/main/LICENSE an
  *  implementation of GPLv3 (https://www.gnu.org/licenses/gpl-3.0.html)
  */
 
@@ -18,6 +18,8 @@ import { Event as ElectronRenderEvent } from "electron/renderer";
 import { MainAPI } from "../../main/preload";
 import { isNumber } from "../../common/util/is";
 import { UserPrefs } from "../../common/UserPrefs";
+import { Save } from "../../common/Save";
+import { ShowData } from "../../common/ShowFile";
 import deepEqual from "deep-equal";
 import * as feather from "feather-icons";
 import { icons as featherIcons } from "feather-icons";
@@ -32,13 +34,12 @@ import {
 	GroupData,
 	GroupPaletteItem,
 	isWithinRange,
-	PaletteItem,
 	PercentToDMX,
 	ProfileTypeIdentifier,
 	StackCueData
 } from "lx_console_backend";
 import { CommandLine, ControlKey, Key, MetaKey, ModifierKey, NumericalKey } from "../../common/CommandLine";
-import p5 from "p5";
+import moment from "moment";
 
 import "../../../css/style.scss";
 
@@ -49,13 +50,100 @@ type BridgedWindow = Window &
 
 export const api: MainAPI = (window as BridgedWindow).mainAPI.api;
 
-export const prefs: UserPrefs = api.getPrefs();
+export const prefs: UserPrefs = api.ipcSendSync("getPrefs");
+export let save: Save = api.ipcSendSync("getSave");
+export let currentShow: ShowData = null;
 
-if (api.showFirstUseModal) {
+if (api.ipcSendSync("getShowFirstUse")) {
 	$("#helpMessage").text(
 		"Welcome! I noticed it was your first time using this application. This tab will be your first port of call if you ever get stuck or don't understand something."
 	);
 	$(".sidebar-item[data-links-to='Help']").addClass("needs-attention");
+}
+
+if (api.ipcSendSync("getShowWhatsNew")) {
+	$("#helpMessage").text("New Update! At least a version change, lets see what happened....");
+	$(".sidebar-item[data-links-to='Help']").addClass("needs-attention");
+}
+
+if (save.shows.length > 0) loadShow(save.shows.sort((a, b) => b.lastModified - a.lastModified)[0].id);
+else newShow();
+
+api.ipcHandle("updateCurrentShow", (e, cs) => {
+	currentShow = cs;
+	renderSaves();
+});
+
+export function renderSaves() {
+	$("#currentShowStatusText").text(currentShow.skeleton.name);
+	$("#showContainer").empty();
+	if (save?.shows?.length) {
+		save.shows
+			.sort((a, b) => b.lastModified - a.lastModified)
+			.forEach((sh) => {
+				const showContainer = document.createElement("div");
+				showContainer.classList.add("show");
+				showContainer.setAttribute("hasContextMenu", "");
+				showContainer.setAttribute("draggable", "true");
+				showContainer.dataset.showId = sh.id;
+				showContainer.dataset.showName = sh.name;
+				showContainer.dataset.showLastModified = sh.lastModified.toString();
+
+				showContainer.addEventListener("contextmenu", (e) => {
+					const { top, left } = getContextPositionFromMousePos(e, $("#showContextMenu").height(), $("#showContextMenu").width());
+
+					$("#showContextMenu-open").off();
+					$("#showContextMenu-rename").off();
+					$("#showContextMenu-delete").off();
+
+					$("#showContextMenu-open").on("click", () => {
+						loadShow(sh.id);
+					});
+					$("#showContextMenu-rename").on("click", () => {
+						renameSpecifiedShow(sh.id);
+					});
+					$("#showContextMenu-delete").on("click", () => {
+						deleteShow(sh.id);
+					});
+
+					return $("#showContextMenu")
+						.css({
+							top,
+							left
+						})
+						.addClass("shown");
+				});
+
+				const showName = document.createElement("div");
+				showName.classList.add("showName");
+				showName.textContent = sh.name;
+
+				const showLastModified = document.createElement("div");
+				showLastModified.classList.add("showLastModified");
+				showLastModified.textContent = moment(sh.lastModified).fromNow();
+
+				showContainer.appendChild(showName);
+				showContainer.appendChild(showLastModified);
+
+				showContainer.addEventListener("dragstart", (e) => {
+					e.preventDefault();
+					api.ipcSend("startShowFileDrag", sh.id);
+				});
+
+				showContainer.addEventListener("dragend", (e) => {
+					e.preventDefault();
+					api.ipcSend("endShowFileDrag", sh.id);
+				});
+
+				if (sh.id == currentShow.skeleton.id) {
+					showContainer.classList.add("currentShow");
+					showLastModified.textContent = "Current Show";
+					$("#showContainer").prepend(showContainer);
+				} else {
+					$("#showContainer").append(showContainer);
+				}
+			});
+	}
 }
 
 updateAccentColor(prefs.accentBgColor);
@@ -92,13 +180,104 @@ export function attentionRead(eltId: string) {
 	$(`#${eltId}`).removeClass("needs-attention");
 }
 
-// ###################### \\
-// Temporary Funcs / Data \\
-// ###################### \\
+// ########## \\
+// Show Saves \\
+// ########## \\
 
-export function getColor() {
-	return color;
+export function newShow(name?: string) {
+	if (!name) {
+		name = api.ipcSendSync("createPrompt", { file: "text_input", options: { prompt: "Show Name" } });
+		if (!name || !name.length) return false;
+	}
+	api.ipcSend("newShow", name);
 }
+
+export function loadShow(id: string) {
+	if (currentShow) api.ipcSend("saveShow", currentShow.skeleton);
+	api.ipcSend("loadShow", id);
+}
+
+export function saveShow() {
+	api.ipcSend("saveShow", currentShow.skeleton);
+}
+
+export function renameShow(name?: string) {
+	if (!name) {
+		name = api.ipcSendSync("createPrompt", { file: "text_input", options: { prompt: "Show Name" } });
+		if (!name || !name.length) return false;
+	}
+	api.ipcSend("renameShow", currentShow.skeleton.id, name);
+}
+
+export function renameSpecifiedShow(id: string, name?: string) {
+	if (!name) {
+		name = api.ipcSendSync("createPrompt", { file: "text_input", options: { prompt: "Show Name" } });
+		if (!name || !name.length) return false;
+	}
+	api.ipcSend("renameShow", id, name);
+}
+
+export function deleteShow(id: string) {
+	api.ipcSend("deleteShow", id);
+	if (currentShow.skeleton.id == id) newShow();
+}
+
+// export function deleteShow(id?: string) {
+// 	if (id) {
+// 		api.ipcSend("deleteShow", id);
+// 	} else {
+// 		api.ipcSend("deleteShow", currentShow.skeleton.id);
+// 	}
+// }
+
+api.ipcHandle("loadingShow", () => createNotification("Show Saves", "Loading show..."));
+api.ipcHandle("loadingShowFailed", () => createNotification("Show Saves", "Failed to load show"));
+api.ipcHandle("loadedShow", (e, showData: ShowData) => {
+	currentShow = showData;
+	refreshAll();
+	createNotification("Show Saves", "Loaded Show");
+});
+
+api.ipcHandle("savingShow", () => createNotification("Show Saves", "Saving show"));
+api.ipcHandle("savingShowFailed", () => createNotification("Show Saves", "Failed to save show"));
+api.ipcHandle("savedShow", () => createNotification("Show Saves", "Saved show"));
+
+api.ipcHandle("saveUpdated", (e, newSave) => (save = newSave));
+
+api.ipcHandle("forceSaveShow", () => saveShow());
+
+api.ipcHandle("renameCurrentShowFailed", () => createNotification("Rename Show Failed", "Failed to update show for unknown reason"));
+
+api.ipcHandle("showDeleteFailed", () => createNotification("Show Deletion Failed", "Failed to delete show for unknown reason"));
+api.ipcHandle("showDeleted", () => {
+	createNotification("Show Delete", "Successfully Deleted Show");
+	renderSaves();
+});
+
+// END Show Saves
+
+// ##### \\
+// Clock \\
+// ##### \\
+
+function showTime(){
+    const date = new Date();
+    const h = date.getHours(); // 0 - 23
+    const m = date.getMinutes(); // 0 - 59
+    const s = date.getSeconds(); // 0 - 59
+    
+    const hs = (h < 10) ? "0" + h : h;
+    const ms = (m < 10) ? "0" + m : m;
+    const ss = (s < 10) ? "0" + s : s;
+    
+    const time = `${hs}:${ms}:${ss}`;
+	$(".liveClockText").text(time);
+    setTimeout(showTime, 1000);
+}
+
+showTime();
+
+
 
 api.ipcHandle("console.log", (e: ElectronRenderEvent, text: string) => console.log(text));
 api.ipcHandle("console.error", (e: ElectronRenderEvent, err: Error) => console.error(err));
@@ -107,10 +286,9 @@ api.ipcHandle("prefsShowSideBar", (e: ElectronRenderEvent, value: boolean) => (p
 
 api.ipcHandle("onClose", () => {
 	prefs.defaultMaximized = api.ipcSendSync("isWindowMaximized");
-	api.savePrefs(prefs);
-	// ! todo Save all
-	// api.saveData(save);
-
+	api.ipcSend("savePrefs", prefs);
+	saveShow();
+	// api.ipcSend("saveData", save);
 	api.ipcSend("exit");
 });
 
@@ -120,7 +298,7 @@ export function openPatchFixturesPrompt() {
 	const usedChannels = api.ipcSendSync("getPatchChannelNumbers");
 	const usedDmxSpace = api.ipcSendSync("getUsedDmxSpace");
 	const data = api.ipcSendSync("createPrompt", { file: "patch_add", options: { usedChannels: usedChannels, usedDmxSpace: usedDmxSpace } });
-	if (!data) return console.log("Prompt returned no data");
+	if (!data) return // console.log("Prompt returned no data");
 	data.forEach((fx: { channel: number; definedProfile: DefinedProfile; initialAddress: number }) => {
 		api.ipcSend("patchAdd", fx.channel, fx.definedProfile, fx.initialAddress);
 	});
@@ -221,7 +399,6 @@ export function renderGroupList(groups: Map<number, GroupPaletteItem>) {
 
 export function forceRefreshGroupList() {
 	const groups = api.ipcSendSync("getAllGroups");
-	console.log(groups);
 	renderGroupList(groups);
 }
 
@@ -333,7 +510,7 @@ function updateSelectedAttributes() {
 
 type FixtureAttributeMap = Map<string, { channelData: ChannelData; addressChannels: FixtureChannel[] }>;
 
-function renderAttributeControllers(fixtures: Map<string, FixtureAttributeMap>) {
+export function renderAttributeControllers(fixtures: Map<string, FixtureAttributeMap>) {
 	ATTRIBUTE_CATEGORIES.forEach((attr) => {
 		$(`#${attr.toLowerCase()}ControlsContainer`).empty();
 		const fxs = fixtures.get(attr);
@@ -496,7 +673,7 @@ export function renderCues() {
 
 		const nameElt = document.createElement("div");
 		nameElt.classList.add("cueName");
-		nameElt.textContent = cue.name.toString();
+		nameElt.textContent = cue.name;
 
 		container.appendChild(idElt);
 		container.appendChild(nameElt);
@@ -522,9 +699,9 @@ export function playbackGo(cueId: number) {
 export function renderPlayback() {
 	$("#playbackStack").empty();
 	const stackCues = api.ipcSendSync("getAllStackCues") as StackCueData[];
-	stackCues.forEach(c => {
+	stackCues.forEach((c) => {
 		const stackCueELt = document.createElement("div");
-		stackCueELt.classList.add("stackCue")
+		stackCueELt.classList.add("stackCue");
 		stackCueELt.id = `stackCue${c.id}`;
 
 		const stackCueIdElt = document.createElement("div");
@@ -536,7 +713,12 @@ export function renderPlayback() {
 		const stackCueNameElt = document.createElement("div");
 		stackCueNameElt.classList.add("stackCueProp");
 		stackCueNameElt.classList.add("stackCueName");
-		stackCueNameElt.textContent = c.name;
+		c.name ? (stackCueNameElt.textContent = c.name) : (stackCueNameElt.innerHTML = "&nbsp;");
+		stackCueNameElt.onclick = () => {
+			const name = api.ipcSendSync("createPrompt", { file: "text_input", options: {} });
+			if (!name || !name.length) return false;
+			api.ipcSend("playbackCueName", c.id, name);
+		};
 		stackCueELt.appendChild(stackCueNameElt);
 
 		const stackCueTimingsElt = document.createElement("div");
@@ -549,14 +731,23 @@ export function renderPlayback() {
 		stackCueTimingsButtonElt.innerHTML = featherIcons["clock"].toSvg();
 		stackCueTimingsElt.appendChild(stackCueTimingsButtonElt);
 
+		stackCueTimingsElt.onclick = () => {
+			stackCueTimingsContainerElt.classList.toggle("shown");
+		};
+
 		const stackCueTimingsContainerElt = document.createElement("div");
 		stackCueTimingsContainerElt.classList.add("stackCueTimingsContainer");
 		stackCueTimingsElt.appendChild(stackCueTimingsContainerElt);
 
 		c.cueTransitions.forEach((tr, trName) => {
 			const trElt = document.createElement("div");
-			trElt.classList.add("stackCueTimingAttr")
-			trElt.classList.add("stackCueTimingsIntensity")
+			trElt.classList.add("stackCueTimingAttr");
+			trElt.classList.add("stackCueTimingsIntensity");
+
+			trElt.onclick = (e) => {
+				e.stopPropagation();
+				//todo: set specific timing
+			};
 
 			const trTextElt = document.createElement("span");
 			trTextElt.textContent = trName;
@@ -579,6 +770,20 @@ export function renderPlayback() {
 	});
 }
 
+export function refreshAll() {
+	forceRefreshPatchList();
+	ATTRIBUTE_CATEGORIES.forEach((attr) => renderAttributePalettes(attr));
+	forceRefreshGroupList();
+	renderCues();
+	renderPlayback();
+	renderSaves();
+
+	setSelectedChannels(new Set());
+
+	// todo: update show specific settings in html
+	// todo: update clock and timer in html
+}
+
 // --- \\
 // DMX \\
 // --- \\
@@ -599,12 +804,10 @@ export function setSelectedChannels(sc: Set<number>) {
 	const attributes = new Map();
 	ATTRIBUTE_CATEGORIES.forEach((type) => {
 		const attr = new Map();
-		console.log(type)
 		selectedChannels.forEach((ch) => {
 			const addressChannels = api.ipcSendSync("getChannelsMatchType", ch, type);
 			if (!addressChannels.length) return;
 			const chData = api.ipcSendSync("getChannel", ch);
-			console.log(chData)
 			const profileId = chData.profile.id;
 			const profileChannelMode = chData.profile.options.channelMode;
 			if (!attr.has(`${profileId}_${profileChannelMode}`)) attr.set(`${profileId}_${profileChannelMode}`, { channelData: chData, addressChannels });
@@ -778,6 +981,9 @@ api.ipcHandle("cueMove", () => renderCues());
 
 api.ipcHandle("playbackGo", (e, cueId) => playbackGo(cueId));
 api.ipcHandle("playbackCueAdd", () => renderPlayback());
+api.ipcHandle("playbackItemUpdate", () => renderPlayback());
+
+api.ipcHandle("refreshAll", () => refreshAll());
 
 function attributeSetByProfile(target: string | { targetId: string; targetOptions: string }, addressOffset: number, addressValue: number) {
 	if (typeof target == "string") {
@@ -918,19 +1124,19 @@ cli.setExecFunc((tokens: string[]) => {
 
 	if (setIntensity()) return true;
 
-	if(tokens[0] == "Go") {
-		if(isNumber(tokens[1])) {
+	if (tokens[0] == "Go") {
+		if (isNumber(tokens[1])) {
 			console.log("TODO: Goto specified Cue ID");
 		}
 		api.ipcSend("playbackGo");
 		return true;
 	}
 
-	if(tokens[0] == "Time") {
-		if(ATTRIBUTE_CATEGORIES.includes(tokens[1].toUpperCase())) {
-			const timings = api.ipcSendSync("createPrompt", {file:"transition_timings", options: {}});
+	if (tokens[0] == "Time") {
+		if (ATTRIBUTE_CATEGORIES.includes(tokens[1].toUpperCase())) {
+			const timings = api.ipcSendSync("createPrompt", { file: "transition_timings", options: {} });
 			console.log(timings);
-			if(!timings) return false;
+			if (!timings) return false;
 			return true;
 		}
 	}
@@ -959,6 +1165,15 @@ cli.setExecFunc((tokens: string[]) => {
 			if (!name || !name.length) return false;
 			const cueId = parseInt(tokens[2]);
 			api.ipcSend("cueName", cueId, name);
+			return true;
+		}
+
+		if (tokens[1] == "Playbacks") {
+			if (!isNumber(tokens[2])) return false;
+			const name = api.ipcSendSync("createPrompt", { file: "text_input", options: {} });
+			if (!name || !name.length) return false;
+			const cueId = parseInt(tokens[2]);
+			api.ipcSend("playbackCueName", cueId, name);
 			return true;
 		}
 	}
@@ -1166,44 +1381,6 @@ window.addEventListener("mousedown", (e) => {
 	});
 });
 
-// new p5((s: p5) => {
-// 	let canvas: p5.Renderer;
-// 	let canvasWidth;
-// 	let canvasHeight;
-// 	const XOFFSET = 10;
-// 	const YOFFSET = 10;
-
-// 	function updateBoardSizes() {
-// 		console.log($("#panTiltGridContainer"));
-
-// 		const board_DOM = document.getElementById("panTiltGridContainer");
-// 		console.log(board_DOM);
-// 		console.log(board_DOM.offsetHeight);
-// 		canvasWidth = board_DOM.offsetWidth - XOFFSET * 2;
-// 		canvasHeight = board_DOM.offsetHeight - YOFFSET * 2;
-
-// 		const size = s.min(canvasWidth, canvasHeight);
-// 		canvasHeight = size;
-// 		canvasWidth = size;
-// 		s.resizeCanvas(canvasWidth + XOFFSET * 2, canvasHeight + YOFFSET * 2);
-
-// 		canvas.parent(document.getElementById("panTiltGridContainer"));
-// 	}
-
-// 	s.setup = () => {
-// 		canvas = s.createCanvas(10, 10);
-// 		updateBoardSizes();
-// 	};
-
-// 	s.windowResized = () => {
-// 		updateBoardSizes();
-// 	};
-
-// 	s.draw = () => {
-// 		s.background(80);
-// 	};
-// }, document.getElementById("panTiltGridContainer"));
-
 // ------- \\
 // DISPLAY \\
 // ------- \\
@@ -1245,12 +1422,6 @@ export function showScreen(screenName: string): void {
 }
 
 showScreen("Home");
-
-let modalOpen = false;
-$(".modal").on("hidden.bs.modal", () => (modalOpen = false));
-$(".modal").on("shown.bs.modal", () => (modalOpen = true));
-
-export const modalIsOpen = () => modalOpen;
 
 // hide context menu when a context menu is not clicked
 document.addEventListener("click", function (event: MouseEvent) {
@@ -1348,7 +1519,7 @@ document.getElementById("fileDragOverlay").addEventListener("dragover", (e) => {
 	}
 });
 
-document.addEventListener("dragenter", (event) => {
+document.addEventListener("dragenter", () => {
 	console.log("File is in the Div Drop Space");
 
 	document.getElementById("dragSection0").classList.remove("hovered");
@@ -1357,7 +1528,7 @@ document.addEventListener("dragenter", (event) => {
 	document.getElementById("dragSidesOverlayContainer").classList.add("shown");
 });
 
-document.getElementById("fileDragOverlay").addEventListener("dragleave", (event) => {
+document.getElementById("fileDragOverlay").addEventListener("dragleave", () => {
 	console.log("File has left Div the Drop Space");
 	document.getElementById("fileDragOverlay").style.zIndex = "-1";
 	document.getElementById("dragSidesOverlayContainer").classList.remove("shown");
@@ -1367,30 +1538,50 @@ window.addEventListener("resize", () => {
 	document.querySelectorAll(".context-menu").forEach((elt) => elt.classList.remove("shown"));
 });
 
-document.addEventListener("contextmenu", (e) => {
-	// todo: determine context menu based on clicked element
-	let top = e.pageY;
-	let left = e.pageX;
+export function getContextPositionFromMousePos(e: MouseEvent, contextHeight: number, contextWidth: number) {
+	let top = e.clientY;
+	let left = e.clientX;
 
 	const maxHeight = $(window).height();
 	if (top > maxHeight / 2) {
-		top -= $("#dmxInterfaceStatusContext").height() + 20;
+		top -= contextHeight + 20;
 	}
 	const maxWidth = $(window).width();
 	if (left > maxWidth / 2) {
-		left -= $("#dmxInterfaceStatusContext").width();
+		left -= contextWidth;
 	}
 
-	$("#dmxInterfaceStatusContext")
-		.css({
-			top: top,
-			left: left
-		})
-		.addClass("shown");
+	return { top, left };
+}
 
-	// ! Remove when not debugging
-	// e.preventDefault();
-	// return false;
+document.addEventListener("contextmenu", (e) => {
+	// todo: determine context menu based on clicked element
+
+	// e.composedPath().forEach((target: HTMLElement) => {
+	// 	if (!target.hasAttribute || !target.classList) return;
+	// 	if (!target.hasAttribute("hasContextMenu")) return;
+
+	// 	if (target.classList.contains("show")) {
+	// 		return $("#showContextMenu")
+	// 			.css({
+	// 				top,
+	// 				left
+	// 			})
+	// 			.addClass("shown")
+	// 			.data($(target).data());
+	// 	}
+	// });
+
+	// $("#dmxInterfaceStatusContext")
+	// 	.css({
+	// 		top: top,
+	// 		left: left
+	// 	})
+	// 	.addClass("shown");
+
+	// ! Uncomment when not debugging rest of application
+	e.preventDefault();
+	return false;
 });
 
 // prevent text selection

@@ -52,6 +52,7 @@
 }
 
 #playbackStack {
+    padding-bottom: 80px;
     margin-top: 1.5vh;
     bottom: calc(var(--statusbar-height)+var(--commandLine-height));
 

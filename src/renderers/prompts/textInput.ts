@@ -30,6 +30,10 @@ const options = ipc.ipcSendSync("prompt-get-options:" + promptId);
 
 console.log(options);
 
+if(options.prompt) {
+	$("#customTitle").text(options.prompt);
+}
+
 export function windowInstruction(instruction: string) {
 	ipc.ipcSend("prompt-window-control:" + promptId, instruction);
 }

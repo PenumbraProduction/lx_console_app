@@ -15,6 +15,7 @@
         "dev": "npm-run-all -p _dev-main _dev-renderer",
         "serve": "electron .",
         "serve-debug": "electron --debug = 5858 .",
+        "predist": "node -p \"'export default ' + JSON.stringify(require('./package.json').version) + ';'\" > src/version.ts",
         "dist": "tsc && webpack --mode production && electron-builder"
     },
     "build": {
@@ -22,6 +23,16 @@
         "productName": "Lx Console",
         "copyright": "CC-BY-NC-4.0",
         "buildVersion": "1.0.0",
+        "fileAssociations": [
+            {
+                "ext": "lxshow",
+                "name": "LX Show",
+                "description": "Show File for LX Console",
+                "mimeType": "application/json",
+                "icon": "./assets/icons/lxshow/lxshow.icns",
+                "role": "Editor"
+            }
+        ],
         "mac": {
             "target": "dmg",
             "icon": "./assets/icons/icon.icns",
@@ -43,6 +54,7 @@
         "nsis": {
             "oneClick": "false",
             "allowToChangeInstallationDirectory": "true",
+            "perMachine": true,
             "shortcutName": "Lx Console"
         },
         "linux": {
@@ -106,7 +118,8 @@
         "electron-log": "^4.4.8",
         "feather-icons": "^4.28.0",
         "jquery": "^3.5.1",
-        "lx_console_backend": "^1.0.1",
+        "lx_console_backend": "^1.4.4",
+        "moment": "^2.29.4",
         "p5": "^1.4.2",
         "semver": "^7.3.7",
         "serialport": "^10.4.0",

@@ -14,35 +14,48 @@
  *  implementation of GPLv3 (https://www.gnu.org/licenses/gpl-3.0.html)
  */
 
-import { DmxAddressRange, ProfileOptions } from "lx_console_backend";
+import { DeskSaveData } from "lx_console_backend";
 import { JsonObject, JsonProperty } from "typescript-json-serializer";
 import { v4 as GenerateUUID } from "uuid";
+import moment from "moment";
+import VERSION from "../version";
 
 // TODO: attribute palettes
 // TODO: groups
 // TODO: Cues
 // TODO: Cue stacks / playbacks
 
-@JsonObject()
-export class ShowPatchChannel {
-	@JsonProperty()
-	ch: number;
+// @JsonObject()
+// export class ShowPatchChannel {
+// 	@JsonProperty()
+// 	ch: number;
 
-	@JsonProperty()
-	profile: string;
+// 	@JsonProperty()
+// 	profile: string;
 
-	@JsonProperty()
-	profileOptions: ProfileOptions;
+// 	@JsonProperty()
+// 	profileOptions: ProfileOptions;
 
-	@JsonProperty()
-	addressRange: DmxAddressRange;
-}
+// 	@JsonProperty()
+// 	addressRange: DmxAddressRange;
 
-@JsonObject()
-export class ShowPatch {
-	@JsonProperty()
-	channels: Array<ShowPatchChannel>;
-}
+// 	constructor(ch: number, profile: string, profileOptions: ProfileOptions, addressRange: DmxAddressRange) {
+// 		this.ch = ch;
+// 		this.profile = profile;
+// 		this.profileOptions = profileOptions;
+// 		this.addressRange = addressRange;
+// 	}
+// }
+
+// @JsonObject()
+// export class ShowPatch {
+// 	@JsonProperty()
+// 	channels: Array<ShowPatchChannel>;
+
+// 	constructor() {
+// 		this.channels = [];
+// 	}
+// }
 
 @JsonObject()
 export class ShowSkeleton {
@@ -52,13 +65,20 @@ export class ShowSkeleton {
 	@JsonProperty()
 	name: string;
 
-	@JsonProperty({ required: false })
+	@JsonProperty()
 	fileName: string;
+
+	@JsonProperty()
+	lastModified: number;
+
+	version: string;
 
 	constructor(name: string) {
 		this.name = name;
 		this.id = GenerateUUID();
-		this.fileName = this.id + ".json";
+		this.fileName = this.id + ".lxshow";
+		this.lastModified = moment.now();
+		this.version = VERSION;
 	}
 
 	toString() {
@@ -68,11 +88,11 @@ export class ShowSkeleton {
 
 @JsonObject()
 export class ShowData {
-	@JsonProperty({ required: true })
-	skeleton: ShowSkeleton = { id: "", name: "", fileName: "" };
+	@JsonProperty()
+	skeleton: ShowSkeleton;
 
 	@JsonProperty()
-	patch: ShowPatch;
+	desk: DeskSaveData;
 
 	constructor(name: string) {
 		this.skeleton = new ShowSkeleton(name);
@@ -81,4 +101,11 @@ export class ShowData {
 	toString() {
 		return this.skeleton.id;
 	}
+}
+
+export function generateShowData(skeleton: ShowSkeleton, deskSave: DeskSaveData): ShowData {
+	const sd = new ShowData("");
+	sd.skeleton = skeleton;
+	sd.desk = deskSave;
+	return sd;
 }

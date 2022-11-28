@@ -1,26 +1,28 @@
-/* 
+/*
  *  Copyright (C) 2022  Daniel Farquharson
- *  
+ *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, version 3 (GPLv3)
- *  
+ *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *  
- *  See https://github.com/LordFarquhar/lx_console_app/blob/main/LICENSE an 
+ *
+ *  See https://github.com/LordFarquhar/lx_console_app/blob/main/LICENSE an
  *  implementation of GPLv3 (https://www.gnu.org/licenses/gpl-3.0.html)
  */
 
 import { app, BrowserWindow, dialog, MessageBoxOptions, ipcMain, Menu, MenuItem, shell, screen } from "electron";
 import * as os from "os";
+import * as fs from "fs";
 import * as path from "path";
 import * as remote from "@electron/remote/main";
 import contextMenu from "electron-context-menu";
 import * as log from "electron-log";
 import { createPromptWindow } from "./PromptManager";
+import { ShowData } from "../common/ShowFile";
 
 log.catchErrors({
 	showDialog: false,
@@ -29,13 +31,25 @@ log.catchErrors({
 	}
 });
 
-import { updateProfileLibrary } from "./OFLManager";
+import * as SavesManager from "./savesManager";
+import * as PrefsManager from "./prefsManager";
+
+PrefsManager.loadPrefs();
+SavesManager.loadSaves();
+
+import { loadProfileLibrary, updateProfileLibrary } from "./OFLManager";
 import * as DmxManager from "./dmxManager";
 import { wait } from "lx_console_backend";
 
+import { inspect as utilInspect } from "util";
+
+export function inspect(a: any) {
+	return utilInspect(a, { depth: null });
+}
+
 export let mainWindow: BrowserWindow = null;
 const gotTheLock = app.requestSingleInstanceLock();
-let iconPath = "";
+export let iconPath = "";
 
 app.disableHardwareAcceleration();
 
@@ -59,7 +73,32 @@ if (!gotTheLock) {
 		}
 	});
 
-	app.on("activate", function () {
+	app.on("render-process-gone", (event, webContents, details) => {
+		if (details.reason == "killed") return;
+		//
+	});
+
+	app.on("second-instance", (e, argv, workingDir, additionalData) => {
+		if (!argv[2] || !argv[2].length) return;
+		const filePath = argv[2];
+		if (!SavesManager.isValidDir(filePath)) return;
+		const pathParts = filePath.split(".");
+		if (pathParts[pathParts.length - 1] != ".lxshow") return;
+		const fileContent = fs.readFileSync(filePath).toString();
+		const showData = JSON.parse(fileContent) as ShowData;
+
+		// todo: parse all content.
+
+		const showId = showData.skeleton.id;
+
+		mainWindow.webContents.send("forceSaveShow");
+		if (!SavesManager.hasShow(showId)) {
+			SavesManager.includeShow(showData);
+		}
+		SavesManager.loadShow(showId);
+	});
+
+	app.on("activate", () => {
 		if (BrowserWindow.getAllWindows().length === 0) {
 			createWindow();
 		}
@@ -96,7 +135,7 @@ function createWindow() {
 		icon: path.join(__dirname, iconPath),
 		show: false
 	});
-	
+
 	splashWindow.setBounds(screenToUse.bounds);
 	splashWindow.setSize(600, 400);
 	splashWindow.center();
@@ -153,6 +192,9 @@ function createWindow() {
 			app.quit();
 		});
 
+		splashWindow.webContents.send("updateLoadingJob", "Loading Profile Library...");
+		await loadProfileLibrary();
+
 		mainWindow.show();
 		// mainWindow.webContents.openDevTools();
 		splashWindow.close();
@@ -194,20 +236,26 @@ function submitIssue(e: Error) {
 	shell.openExternal(url).catch(log.error);
 }
 
-function errorPopup(e: Error, explanation?: string) {
+export function errorPopup(e: Error | string, explanation?: string, options?: { allowContinue: boolean }) {
+	options = options ? options : { allowContinue: true };
 	log.error(e);
 	mainWindow.webContents.send("console.error", e);
 	dialog
 		.showMessageBox({
 			title: explanation ? explanation : "An error occurred",
-			message: e.message,
-			detail: e.stack,
+			message: typeof e == "string" ? e : e.message,
+			detail: typeof e == "string" ? e : e.stack,
 			type: "error",
-			buttons: ["Ignore", "Report", "Exit"]
+			buttons: options.allowContinue ? ["Ignore", "Report", "Exit"] : ["Report", "Exit"]
 		})
 		.then((result) => {
-			if (result.response === 1) submitIssue(e);
-			if (result.response === 2) app.quit();
+			if (options.allowContinue) {
+				if (result.response === 1) submitIssue(typeof e == "string" ? new Error(e) : e);
+				if (result.response === 2) app.quit();
+			} else {
+				if (result.response === 0) submitIssue(typeof e == "string" ? new Error(e) : e);
+				app.quit();
+			}
 		});
 }
 
@@ -280,7 +328,7 @@ normalMenu.append(
 
 normalMenu.append(
 	new MenuItem({
-		label: "Tools",
+		label: "Remote",
 		submenu: [
 			{
 				label: "Update Fixture Library",
@@ -304,6 +352,13 @@ normalMenu.append(
 	})
 );
 
+normalMenu.append(
+	new MenuItem({
+		label: "Tools",
+		submenu: [{ label: "Profile Editor" }]
+	})
+);
+
 // Add the "Toggle Menu Bar" option for linux users
 if (process.platform === "linux") {
 	normalMenu.items[1].submenu.append(
@@ -323,8 +378,8 @@ if (process.platform === "linux") {
     IPC Events
 */
 
-ipcMain.on("errorPopup", (event, e: Error, explanation?: string) => {
-	errorPopup(e, explanation);
+ipcMain.on("errorPopup", (event, e: Error | string, explanation?: string, options?: { allowContinue: boolean }) => {
+	errorPopup(e, explanation, options);
 });
 
 ipcMain.on("createPrompt", async (e, data) => {
