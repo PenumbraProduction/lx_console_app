@@ -3,8 +3,8 @@
     "productName": "lxconsole",
     "version": "1.0.0",
     "description": "LX Console - DMX interface",
-    "homepage": "https://github.com/lordfarquhar/lx_console_app",
-    "repository": "https://github.com/lordfarquhar/lx_console_app",
+    "homepage": "https://github.com/PenumbraProduction/lx_console_app",
+    "repository": "https://github.com/PenumbraProduction/lx_console_app",
     "main": "out/main/main.js",
     "scripts": {
         "postinstall": "electron-builder install-app-deps",
@@ -19,7 +19,7 @@
         "dist": "tsc && webpack --mode production && electron-builder"
     },
     "build": {
-        "appId": "io.github.lordfarquhar.lxconsole",
+        "appId": "io.github.PenumbraProduction.lxconsole",
         "productName": "Lx Console",
         "copyright": "CC-BY-NC-4.0",
         "buildVersion": "1.0.0",
@@ -108,7 +108,7 @@
     },
     "dependencies": {
         "@electron/remote": "^2.0.1",
-        "@treverix/custom-electron-titlebar": "github:LordFarquhar/custom-electron-titlebar",
+        "@treverix/custom-electron-titlebar": "github:lordfarquhar/custom-electron-titlebar",
         "axios": "^0.27.2",
         "bootstrap": "^4.6.1",
         "color": "^4.2.3",

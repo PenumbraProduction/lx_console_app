@@ -10,7 +10,7 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  See https://github.com/LordFarquhar/lx_console_app/blob/main/LICENSE an
+ *  See https://github.com/PenumbraProduction/lx_console_app/blob/main/LICENSE an
  *  implementation of GPLv3 (https://www.gnu.org/licenses/gpl-3.0.html)
  */
 

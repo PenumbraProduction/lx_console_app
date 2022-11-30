@@ -10,7 +10,7 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *  
- *  See https://github.com/LordFarquhar/lx_console_app/blob/main/LICENSE an 
+ *  See https://github.com/PenumbraProduction/lx_console_app/blob/main/LICENSE an 
  *  implementation of GPLv3 (https://www.gnu.org/licenses/gpl-3.0.html)
  */
 
@@ -63,7 +63,7 @@ export function updateProfileLibrary(): Promise<void> {
 			fs.mkdirSync(path.join(defaultDataDir, "temp", "ofldata"), { recursive: true });
 
 		downloadFile(
-			"https://github.com/danielfar-theatretech/OpenFixtureLibrary/archive/refs/heads/main.zip",
+			"https://github.com/PenumbraProduction/OpenFixtureLibrary/archive/refs/heads/main.zip",
 			path.join(defaultDataDir, "temp", "ofldata", "data.zip"),
 			(completedAmnt) => console.log(`${completedAmnt}% completed`)
 		).then(() => {

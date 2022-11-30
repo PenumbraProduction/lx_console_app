@@ -10,7 +10,7 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  See https://github.com/LordFarquhar/lx_console_app/blob/main/LICENSE an
+ *  See https://github.com/PenumbraProduction/lx_console_app/blob/main/LICENSE an
  *  implementation of GPLv3 (https://www.gnu.org/licenses/gpl-3.0.html)
  */
 
@@ -227,7 +227,7 @@ function submitIssue(e: Error) {
 	const versions = { app: app.getName(), electron: "Electron " + process.versions.electron, os: getOsVersion() };
 
 	const url =
-		"https://github.com/lordfarquhar/lx_console_app/issues/new" +
+		"https://github.com/PenumbraProduction/lx_console_app/issues/new" +
 		"?" +
 		new URLSearchParams({
 			title: `Error report for ${versions.app}`,
