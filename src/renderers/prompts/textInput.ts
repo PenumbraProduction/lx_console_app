@@ -33,6 +33,9 @@ console.log(options);
 if(options.prompt) {
 	$("#customTitle").text(options.prompt);
 }
+if(options.placeholder) {
+	$("#textInput").val(options.placeholder)
+}
 
 export function windowInstruction(instruction: string) {
 	ipc.ipcSend("prompt-window-control:" + promptId, instruction);

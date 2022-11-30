@@ -314,7 +314,7 @@ normalMenu.append(
 			},
 			{
 				label: "Refresh Page",
-				accelerator: "CmdOrCtrl+R",
+				accelerator: "CmdOrCtrl+Shift+R",
 				click: () => mainWindow.reload()
 			},
 			{
@@ -384,7 +384,7 @@ ipcMain.on("errorPopup", (event, e: Error | string, explanation?: string, option
 
 ipcMain.on("createPrompt", async (e, data) => {
 	try {
-		e.returnValue = await createPromptWindow(mainWindow, data.file, data.options);
+		e.returnValue = await createPromptWindow(mainWindow, data.file, data.options, data.prefs);
 	} catch (err) {
 		e.returnValue = err;
 	}

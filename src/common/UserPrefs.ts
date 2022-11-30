@@ -16,10 +16,12 @@
 
 import { JsonObject, JsonProperty } from "typescript-json-serializer";
 
+import VERSION from "../version";
+
 @JsonObject()
 export class UserPrefs {
     @JsonProperty()
-    lastUseVersion = "0.0.0";
+    lastUseVersion = VERSION;
 
     @JsonProperty()
     mainBgColor = "#252525";

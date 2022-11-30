@@ -65,3 +65,22 @@
         }
     }
 }
+
+#patchFixtureModal {
+    max-width: 65%;
+    padding: 5vw;
+    margin: auto;
+
+    .layout-row {
+        align-items: center;
+        
+        &:not(:last-child) {
+            border-bottom: .3vh solid var(--accent-bg);
+        }
+    }
+}
+
+#patchFixtureModalContainer {
+    margin-top: 4vw;
+    margin-left: 8vw;
+}

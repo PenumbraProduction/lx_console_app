@@ -54,15 +54,15 @@ export const prefs: UserPrefs = api.ipcSendSync("getPrefs");
 export let save: Save = api.ipcSendSync("getSave");
 export let currentShow: ShowData = null;
 
+if (api.ipcSendSync("getShowWhatsNew")) {
+	$("#helpMessage").text("New Update! At least a version change, lets see what happened....");
+	$(".sidebar-item[data-links-to='Help']").addClass("needs-attention");
+}
+
 if (api.ipcSendSync("getShowFirstUse")) {
 	$("#helpMessage").text(
 		"Welcome! I noticed it was your first time using this application. This tab will be your first port of call if you ever get stuck or don't understand something."
 	);
-	$(".sidebar-item[data-links-to='Help']").addClass("needs-attention");
-}
-
-if (api.ipcSendSync("getShowWhatsNew")) {
-	$("#helpMessage").text("New Update! At least a version change, lets see what happened....");
 	$(".sidebar-item[data-links-to='Help']").addClass("needs-attention");
 }
 
@@ -186,7 +186,7 @@ export function attentionRead(eltId: string) {
 
 export function newShow(name?: string) {
 	if (!name) {
-		name = api.ipcSendSync("createPrompt", { file: "text_input", options: { prompt: "Show Name" } });
+		name = api.ipcSendSync("createPrompt", { file: "text_input", options: { prompt: "Show Name", placeholder: "MyShow" } });
 		if (!name || !name.length) return false;
 	}
 	api.ipcSend("newShow", name);
@@ -230,17 +230,17 @@ export function deleteShow(id: string) {
 // 	}
 // }
 
-api.ipcHandle("loadingShow", () => createNotification("Show Saves", "Loading show..."));
-api.ipcHandle("loadingShowFailed", () => createNotification("Show Saves", "Failed to load show"));
+api.ipcHandle("loadingShow", () => createNotification("Show File", "Loading show..."));
+api.ipcHandle("loadingShowFailed", () => createNotification("Show Show File", "Failed to load show"));
 api.ipcHandle("loadedShow", (e, showData: ShowData) => {
 	currentShow = showData;
 	refreshAll();
 	createNotification("Show Saves", "Loaded Show");
 });
 
-api.ipcHandle("savingShow", () => createNotification("Show Saves", "Saving show"));
-api.ipcHandle("savingShowFailed", () => createNotification("Show Saves", "Failed to save show"));
-api.ipcHandle("savedShow", () => createNotification("Show Saves", "Saved show"));
+api.ipcHandle("savingShow", () => createNotification("Show File", "Saving show"));
+api.ipcHandle("savingShowFailed", () => createNotification("Show File", "Failed to save show"));
+api.ipcHandle("savedShow", () => createNotification("Show File", "Saved show"));
 
 api.ipcHandle("saveUpdated", (e, newSave) => (save = newSave));
 
@@ -250,7 +250,7 @@ api.ipcHandle("renameCurrentShowFailed", () => createNotification("Rename Show F
 
 api.ipcHandle("showDeleteFailed", () => createNotification("Show Deletion Failed", "Failed to delete show for unknown reason"));
 api.ipcHandle("showDeleted", () => {
-	createNotification("Show Delete", "Successfully Deleted Show");
+	createNotification("Show File", "Successfully Deleted Show");
 	renderSaves();
 });
 
@@ -297,7 +297,7 @@ const ATTRIBUTE_CATEGORIES = ["BEAM", "COLOUR", "POSITION", "SHAPE", "FUNCTION",
 export function openPatchFixturesPrompt() {
 	const usedChannels = api.ipcSendSync("getPatchChannelNumbers");
 	const usedDmxSpace = api.ipcSendSync("getUsedDmxSpace");
-	const data = api.ipcSendSync("createPrompt", { file: "patch_add", options: { usedChannels: usedChannels, usedDmxSpace: usedDmxSpace } });
+	const data = api.ipcSendSync("createPrompt", { file: "patch_add", options: { usedChannels: usedChannels, usedDmxSpace: usedDmxSpace }, prefs});
 	if (!data) return // console.log("Prompt returned no data");
 	data.forEach((fx: { channel: number; definedProfile: DefinedProfile; initialAddress: number }) => {
 		api.ipcSend("patchAdd", fx.channel, fx.definedProfile, fx.initialAddress);
@@ -306,7 +306,11 @@ export function openPatchFixturesPrompt() {
 
 function generateRenameChannelFunc(channel: number) {
 	return () => {
-		cli.setTokens(["Name", "Patch", `${channel}`]);
+		const currentName = $(`#patchChannel_name-${channel}`).text();
+		const name = api.ipcSendSync("createPrompt", { file: "text_input", options: {prompt: `Rename Channel ${channel}`, placeholder: currentName} });
+		if (!name || !name.length) return false;
+		api.ipcSend("patchChannelRename", channel, name);
+		// cli.setTokens(["Name", "Patch", `${channel}`]);
 	};
 }
 function generateMoveChannelFunc(channel: number) {
