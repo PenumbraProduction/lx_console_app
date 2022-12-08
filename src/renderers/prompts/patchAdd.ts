@@ -1,16 +1,16 @@
-/* 
+/*
  *  Copyright (C) 2022  Daniel Farquharson
- *  
+ *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, version 3 (GPLv3)
- *  
+ *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *  
- *  See https://github.com/PenumbraProduction/lx_console_app/blob/main/LICENSE an 
+ *
+ *  See https://github.com/PenumbraProduction/lx_console_app/blob/main/LICENSE an
  *  implementation of GPLv3 (https://www.gnu.org/licenses/gpl-3.0.html)
  */
 
@@ -103,6 +103,12 @@ export function setPatchBrand(): void {
 	dflt.textContent = "Select Fixture";
 	dflt.setAttribute("selected", "selected");
 	disableElt(dflt);
+	disableElt($("#numberOfFixtures")[0]);
+	disableElt($("#startDmxAddress")[0]);
+	disableElt($("#dmxAddressOffset")[0]);
+	disableElt($("#patchSubmit")[0]);
+	disableElt($("#fixtureChannelModeSelect")[0]);
+
 	$("#fixtureTypeSelect").append(dflt);
 
 	// populate fixtureTypeSelect with options that are from the specified brand
@@ -123,7 +129,8 @@ export function setPatchType(): void {
 
 	// populate channelModes
 	$("#fixtureChannelModeSelect").empty();
-	for (let i = 0; i < currentPatchInfo.fixtureProfile.channelModes.length; i++) {
+	const modes = currentPatchInfo.fixtureProfile.channelModes.sort((a, b) => a.count-b.count);
+	for (let i = 0; i < modes.length; i++) {
 		const mode = currentPatchInfo.fixtureProfile.channelModes[i];
 		const elt = document.createElement("option");
 		elt.value = i.toString();
@@ -139,12 +146,13 @@ export function setPatchType(): void {
 
 export function setPatchChannelMode(): void {
 	currentPatchInfo.fixtureChannelMode = parseInt($("#fixtureChannelModeSelect").val() as string);
-	$("#dmxAddressOffset").val(currentPatchInfo.fixtureProfile.channelModes[currentPatchInfo.fixtureChannelMode].count);
-	$("#dmxAddressOffset").attr(
-		"min",
-		currentPatchInfo.fixtureProfile.channelModes[currentPatchInfo.fixtureChannelMode].count
-	);
-	setPatchDmxOffset(currentPatchInfo.fixtureProfile.channelModes[currentPatchInfo.fixtureChannelMode].count);
+	const chCount = currentPatchInfo.fixtureProfile.channelModes[currentPatchInfo.fixtureChannelMode].count;
+	const currentChCount = $("#dmxAddressOffset").val();
+	$("#dmxAddressOffset").attr("min", currentPatchInfo.fixtureProfile.channelModes[currentPatchInfo.fixtureChannelMode].count);
+	if (currentChCount < chCount) {
+		$("#dmxAddressOffset").val(chCount);
+		setPatchDmxOffset(currentPatchInfo.fixtureProfile.channelModes[currentPatchInfo.fixtureChannelMode].count);
+	}
 
 	enableElt($("#numberOfFixtures")[0]);
 	setPatchNumber(1);
@@ -211,9 +219,7 @@ export function patchFixtures(): void {
 
 	// invalid data
 	if (currentPatchInfo.offsetDmx < currentPatchInfo.fixtureChannelMode) {
-		$("#patchFixtureModalMessage").text(
-			"DMX Offset cannot be less than fixtureChannelMode (minimum required channels used)"
-		);
+		$("#patchFixtureModalMessage").text("DMX Offset cannot be less than fixtureChannelMode (minimum required channels used)");
 		return;
 	}
 

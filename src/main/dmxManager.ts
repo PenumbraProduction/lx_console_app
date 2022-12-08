@@ -205,10 +205,13 @@ ipcMain.on("getUsedDmxSpace", (e) => (e.returnValue = desk.patch.getUsedAddressS
 desk.groups.on("itemAdd", (group: GroupPaletteItem) => ipcSend("groupAdd", GroupPaletteItem.serialize(group)));
 desk.groups.on("itemDelete", (id: number | Set<number>) => ipcSend("groupDelete", id));
 desk.groups.on("itemMove", (id1: number, id2: number) => ipcSend("groupMove", id1, id2));
+desk.groups.on("itemUpdate", () => ipcSend("groupUpdate"));
 
 ipcMain.on("groupAdd", (e, id: number, channels: Set<number>) => desk.groups.addItem(new GroupPaletteItem(desk.groups.getPaletteData(), id, channels)));
 ipcMain.on("groupDelete", (e, id: number | Set<number>) => (typeof id == "number" ? desk.groups.removeItem(id) : desk.groups.removeItems(id)));
 ipcMain.on("groupMove", (e, id1: number, id2: number) => desk.groups.moveItem(id1, id2));
+ipcMain.on("groupName", (e, id: number, name: string) => desk.groups.getItem(id).setName(name));
+
 ipcMain.on("getGroup", (e, id: number) => (e.returnValue = GroupPaletteItem.serialize(desk.groups.getItem(id))));
 ipcMain.on("getGroups", (e, ids: Set<number>) => {
 	const allowedData = new Map();

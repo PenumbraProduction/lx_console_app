@@ -36,15 +36,19 @@
 
         cursor: pointer;
 
+        &.fullSelect {
+            color: var(--accent-fg);
+            background: var(--accent-bg);
+        }
+
+        &.partialSelect {
+            color: var(--accent-fg);
+            background: linear-gradient(171deg, var(--main-bg) 0%, var(--accent-bg) 100%);
+        }
+
         &:hover {
-            background-color: darkgray;
+            background: darkgray;
             color: black
-        }
-
-        &_name {
-        }
-
-        &_id {
         }
     }
 }

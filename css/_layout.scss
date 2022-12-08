@@ -199,7 +199,7 @@
         width: 100%;
     }
 
-    bottom: calc(var(--commandLine-height), + var(--statusbar-height));
+    bottom: calc(var(--commandLine-height) + var(--statusbar-height));
     right: 0;
     font-size: calc(var(--commandLine-height) - 10px);
     line-height: calc(var(--commandLine-height) - 10px);

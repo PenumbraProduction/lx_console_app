@@ -260,24 +260,22 @@ api.ipcHandle("showDeleted", () => {
 // Clock \\
 // ##### \\
 
-function showTime(){
-    const date = new Date();
-    const h = date.getHours(); // 0 - 23
-    const m = date.getMinutes(); // 0 - 59
-    const s = date.getSeconds(); // 0 - 59
-    
-    const hs = (h < 10) ? "0" + h : h;
-    const ms = (m < 10) ? "0" + m : m;
-    const ss = (s < 10) ? "0" + s : s;
-    
-    const time = `${hs}:${ms}:${ss}`;
+function showTime() {
+	const date = new Date();
+	const h = date.getHours(); // 0 - 23
+	const m = date.getMinutes(); // 0 - 59
+	const s = date.getSeconds(); // 0 - 59
+
+	const hs = h < 10 ? "0" + h : h;
+	const ms = m < 10 ? "0" + m : m;
+	const ss = s < 10 ? "0" + s : s;
+
+	const time = `${hs}:${ms}:${ss}`;
 	$(".liveClockText").text(time);
-    setTimeout(showTime, 1000);
+	setTimeout(showTime, 1000);
 }
 
 showTime();
-
-
 
 api.ipcHandle("console.log", (e: ElectronRenderEvent, text: string) => console.log(text));
 api.ipcHandle("console.error", (e: ElectronRenderEvent, err: Error) => console.error(err));
@@ -297,8 +295,8 @@ const ATTRIBUTE_CATEGORIES = ["BEAM", "COLOUR", "POSITION", "SHAPE", "FUNCTION",
 export function openPatchFixturesPrompt() {
 	const usedChannels = api.ipcSendSync("getPatchChannelNumbers");
 	const usedDmxSpace = api.ipcSendSync("getUsedDmxSpace");
-	const data = api.ipcSendSync("createPrompt", { file: "patch_add", options: { usedChannels: usedChannels, usedDmxSpace: usedDmxSpace }, prefs});
-	if (!data) return // console.log("Prompt returned no data");
+	const data = api.ipcSendSync("createPrompt", { file: "patch_add", options: { usedChannels: usedChannels, usedDmxSpace: usedDmxSpace }, prefs });
+	if (!data) return; // console.log("Prompt returned no data");
 	data.forEach((fx: { channel: number; definedProfile: DefinedProfile; initialAddress: number }) => {
 		api.ipcSend("patchAdd", fx.channel, fx.definedProfile, fx.initialAddress);
 	});
@@ -307,7 +305,7 @@ export function openPatchFixturesPrompt() {
 function generateRenameChannelFunc(channel: number) {
 	return () => {
 		const currentName = $(`#patchChannel_name-${channel}`).text();
-		const name = api.ipcSendSync("createPrompt", { file: "text_input", options: {prompt: `Rename Channel ${channel}`, placeholder: currentName} });
+		const name = api.ipcSendSync("createPrompt", { file: "text_input", options: { prompt: `Rename Channel ${channel}`, placeholder: currentName } });
 		if (!name || !name.length) return false;
 		api.ipcSend("patchChannelRename", channel, name);
 		// cli.setTokens(["Name", "Patch", `${channel}`]);
@@ -399,6 +397,7 @@ export function renderGroupList(groups: Map<number, GroupPaletteItem>) {
 
 		$("#groupsContainer").append(elt);
 	});
+	highlightGroups();
 }
 
 export function forceRefreshGroupList() {
@@ -663,6 +662,28 @@ function highlightPalettes() {
 	});
 }
 
+function highlightGroups() {
+	const groups = api.ipcSendSync("getAllGroups");
+	const selectedChs = Array.from(selectedChannels);
+	groups.forEach((g: GroupPaletteItem) => {
+		const gChs = Array.from(g.channels);
+
+		if (gChs.length) {
+			if (gChs.every((r) => selectedChs.includes(r))) {
+				$(`#group_${g.id}_select`).removeClass("partialSelect").addClass("fullSelect");
+				return;
+			}
+
+			if (selectedChs.some((r) => gChs.includes(r))) {
+				$(`#group_${g.id}_select`).addClass("partialSelect").removeClass("fullSelect");
+				return;
+			}
+		}
+
+		$(`#group_${g.id}_select`).removeClass("partialSelect").removeClass("fullSelect");
+	});
+}
+
 export function renderCues() {
 	$("#cuesContainer").empty();
 	const cues = api.ipcSendSync("getAllCues") as CuePaletteItemData[];
@@ -822,6 +843,7 @@ export function setSelectedChannels(sc: Set<number>) {
 	renderAttributeControllers(attributes);
 	updateSelectedAttributes();
 	highlightPalettes();
+	highlightGroups();
 }
 
 const notificationContainer = $("#notificationContainer");
@@ -948,6 +970,7 @@ api.ipcHandle("channelNameUpdate", () => forceRefreshPatchList());
 api.ipcHandle("groupAdd", () => forceRefreshGroupList());
 api.ipcHandle("groupDelete", () => forceRefreshGroupList());
 api.ipcHandle("groupMove", () => forceRefreshGroupList());
+api.ipcHandle("groupUpdate", () => forceRefreshGroupList());
 
 api.ipcHandle("colourPaletteAdd", () => renderAttributePalettes("COLOUR"));
 api.ipcHandle("colourPaletteDelete", () => renderAttributePalettes("COLOUR"));
@@ -1090,6 +1113,10 @@ cli.on("historyUpdate", () => {
 	}
 });
 
+export function toggleCommandHistory() {
+	$("#commandLineHistory").toggle();
+}
+
 cli.setExecFunc((tokens: string[]) => {
 	if (!tokens.length) return false;
 
@@ -1163,6 +1190,15 @@ cli.setExecFunc((tokens: string[]) => {
 			return true;
 		}
 
+		if (tokens[1] == "Groups") {
+			if (!isNumber(tokens[2])) return false;
+			const name = api.ipcSendSync("createPrompt", { file: "text_input", options: {} });
+			if (!name || !name.length) return false;
+			const groupId = parseInt(tokens[2]);
+			api.ipcSend("groupName", groupId, name);
+			return true;
+		}
+
 		if (tokens[1] == "Cues") {
 			if (!isNumber(tokens[2])) return false;
 			const name = api.ipcSendSync("createPrompt", { file: "text_input", options: {} });
@@ -1228,6 +1264,12 @@ cli.setExecFunc((tokens: string[]) => {
 			if (!isNumber(tokens[2])) return false;
 			const paletteId = parseInt(tokens[2]);
 			api.ipcSend(`${tokens[1].toLowerCase()}PaletteDelete`, paletteId);
+			return true;
+		}
+		if (tokens[1] == "Groups") {
+			if (!isNumber(tokens[2])) return false;
+			const groupId = parseInt(tokens[2]);
+			api.ipcSend("groupDelete", groupId);
 			return true;
 		}
 		if (tokens[1] == "Cues") {
