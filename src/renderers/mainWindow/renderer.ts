@@ -48,37 +48,59 @@ type BridgedWindow = Window &
 		mainAPI: any;
 	};
 
+// Export the api object (made accessible from the preload) for access from the DOM
 export const api: MainAPI = (window as BridgedWindow).mainAPI.api;
 
 export const prefs: UserPrefs = api.ipcSendSync("getPrefs");
 export let save: Save = api.ipcSendSync("getSave");
+
+// used to store information about the currently active show
 export let currentShow: ShowData = null;
 
+// if an update has occurred since the user last launched the software
 if (api.ipcSendSync("getShowWhatsNew")) {
+	// Display the new version information
 	$("#helpMessage").text("New Update! At least a version change, lets see what happened....");
+	// highlight the Help page
 	$(".sidebar-item[data-links-to='Help']").addClass("needs-attention");
 }
 
+// if this is the first time the user has ever launched the software
 if (api.ipcSendSync("getShowFirstUse")) {
+	// display the first time help text
 	$("#helpMessage").text(
 		"Welcome! I noticed it was your first time using this application. This tab will be your first port of call if you ever get stuck or don't understand something."
 	);
+	// highlight the Help page
 	$(".sidebar-item[data-links-to='Help']").addClass("needs-attention");
 }
 
+// api.ipcHandle("updateChecking", () => createNotification("Version Manager", "Checking for updates..."));
+// api.ipcHandle("updateNotAvailable", () => createNotification("Version Manager", "No new updates"));
+// api.ipcHandle("updateAvailable", ({ version, date}) => createNotification("Version Manager", `New Update! version: ${version}, released on ${date}`) );
+// api.ipcHandle("updateCancelled", () => createNotification("Version Manager", "Update Cancelled"));
+// api.ipcHandle("updateDownloadProgress", (info) => console.log(info));
+// api.ipcHandle("updateDownloaded", () => createNotification("Version Manager", "Download complete, please restart to complete changes"));
+
+// Load the most recently opened show file
 if (save.shows.length > 0) loadShow(save.shows.sort((a, b) => b.lastModified - a.lastModified)[0].id);
+// If no show files exist, create a new show
 else newShow();
+
 
 api.ipcHandle("updateCurrentShow", (e, cs) => {
 	currentShow = cs;
 	renderSaves();
 });
 
+// Display the show files on the main Home page
 export function renderSaves() {
+	// Update show name in status
 	$("#currentShowStatusText").text(currentShow.skeleton.name);
 	$("#showContainer").empty();
 	if (save?.shows?.length) {
 		save.shows
+		// sort so most recently used comes first
 			.sort((a, b) => b.lastModified - a.lastModified)
 			.forEach((sh) => {
 				const showContainer = document.createElement("div");
@@ -89,6 +111,7 @@ export function renderSaves() {
 				showContainer.dataset.showName = sh.name;
 				showContainer.dataset.showLastModified = sh.lastModified.toString();
 
+				// add context menu (right click) behaviour
 				showContainer.addEventListener("contextmenu", (e) => {
 					const { top, left } = getContextPositionFromMousePos(e, $("#showContextMenu").height(), $("#showContextMenu").width());
 
@@ -135,6 +158,7 @@ export function renderSaves() {
 					api.ipcSend("endShowFileDrag", sh.id);
 				});
 
+				// put the currently active show at the beginning of the list
 				if (sh.id == currentShow.skeleton.id) {
 					showContainer.classList.add("currentShow");
 					showLastModified.textContent = "Current Show";
@@ -145,6 +169,8 @@ export function renderSaves() {
 			});
 	}
 }
+
+// Set default settings and prefs
 
 updateAccentColor(prefs.accentBgColor);
 $("#settingsAccentBgColor").val(prefs.accentBgColor);
@@ -167,15 +193,19 @@ document.getElementById("settingsMainBgColor").addEventListener("input", () => {
 
 function updateMainColor(col: string) {
 	prefs.mainBgColor = col;
+	// determine whether the background colour is light or dark and use a light or dark font colour accordingly
 	prefs.mainFgColor = color(col).isDark() ? "#c4c4c4" : "#212121";
+	// update css variables
 	$(":root").css("--main-bg", col);
 	$(":root").css("--main-fg", prefs.mainFgColor);
 }
 
+// helper function to add "needs-attention" class to html elements
 export function needsAttention(eltId: string) {
 	$(`#${eltId}`).addClass("needs-attention");
 }
 
+// helper function to remove "needs-attention" class from html elements
 export function attentionRead(eltId: string) {
 	$(`#${eltId}`).removeClass("needs-attention");
 }
@@ -222,13 +252,6 @@ export function deleteShow(id: string) {
 	if (currentShow.skeleton.id == id) newShow();
 }
 
-// export function deleteShow(id?: string) {
-// 	if (id) {
-// 		api.ipcSend("deleteShow", id);
-// 	} else {
-// 		api.ipcSend("deleteShow", currentShow.skeleton.id);
-// 	}
-// }
 
 api.ipcHandle("loadingShow", () => createNotification("Show File", "Loading show..."));
 api.ipcHandle("loadingShowFailed", () => createNotification("Show Show File", "Failed to load show"));
@@ -260,6 +283,10 @@ api.ipcHandle("showDeleted", () => {
 // Clock \\
 // ##### \\
 
+/**
+ * Convert current time to HH:MM:SS format and update any elements with the "liveClockText" class
+ * Self calling function so updates roughly once every second
+ */
 function showTime() {
 	const date = new Date();
 	const h = date.getHours(); // 0 - 23
@@ -274,7 +301,6 @@ function showTime() {
 	$(".liveClockText").text(time);
 	setTimeout(showTime, 1000);
 }
-
 showTime();
 
 api.ipcHandle("console.log", (e: ElectronRenderEvent, text: string) => console.log(text));
@@ -282,26 +308,34 @@ api.ipcHandle("console.error", (e: ElectronRenderEvent, err: Error) => console.e
 
 api.ipcHandle("prefsShowSideBar", (e: ElectronRenderEvent, value: boolean) => (prefs.showSideBar = value));
 
+// before the software shuts down, save the prefs and current show
 api.ipcHandle("onClose", () => {
 	prefs.defaultMaximized = api.ipcSendSync("isWindowMaximized");
 	api.ipcSend("savePrefs", prefs);
 	saveShow();
-	// api.ipcSend("saveData", save);
 	api.ipcSend("exit");
 });
 
+// List of all the categories of channel types
 const ATTRIBUTE_CATEGORIES = ["BEAM", "COLOUR", "POSITION", "SHAPE", "FUNCTION", "UNCATEGORISED"];
 
 export function openPatchFixturesPrompt() {
+	// get current patch information
 	const usedChannels = api.ipcSendSync("getPatchChannelNumbers");
 	const usedDmxSpace = api.ipcSendSync("getUsedDmxSpace");
+	// generate a new prompt with the patch add type
 	const data = api.ipcSendSync("createPrompt", { file: "patch_add", options: { usedChannels: usedChannels, usedDmxSpace: usedDmxSpace }, prefs });
 	if (!data) return; // console.log("Prompt returned no data");
+	// patch the fixtures returned from the prompt
 	data.forEach((fx: { channel: number; definedProfile: DefinedProfile; initialAddress: number }) => {
 		api.ipcSend("patchAdd", fx.channel, fx.definedProfile, fx.initialAddress);
 	});
 }
 
+/**
+ * Helper function for creating a function which is attached to a channelName element in the patch list
+ * Generates a text input prompt and assigns the return value to the channel name
+ */
 function generateRenameChannelFunc(channel: number) {
 	return () => {
 		const currentName = $(`#patchChannel_name-${channel}`).text();
@@ -311,11 +345,7 @@ function generateRenameChannelFunc(channel: number) {
 		// cli.setTokens(["Name", "Patch", `${channel}`]);
 	};
 }
-function generateMoveChannelFunc(channel: number) {
-	return () => {
-		cli.setTokens(["Move", "Patch", `${channel}`]);
-	};
-}
+
 
 export function renderPatchList(patch: Map<number, any>) {
 	const patchArr = Array.from(patch.values());
@@ -327,12 +357,17 @@ export function renderPatchList(patch: Map<number, any>) {
 	$("#patchListDmxContents").empty();
 
 	patchArr.forEach((v) => {
+		// ID
 		const channelSpan = document.createElement("span");
 		channelSpan.id = `patchChannel_channel-${v.channel}`;
 		channelSpan.classList.add("patchChannelComponent");
 		channelSpan.classList.add("patchChannel_channel");
 		channelSpan.textContent = v.channel.toString();
-		channelSpan.onclick = generateMoveChannelFunc(v.channel);
+		// when the channel number is clicked, enter the move command in to the CLI and run it
+		channelSpan.onclick = () => {
+			cli.setTokens(["Move", "Patch", `${v.channel}`]);
+			cli.exec();
+		};
 		$("#patchListChannelContents").append(channelSpan);
 		// Name
 		const nameSpan = document.createElement("span");
@@ -360,12 +395,9 @@ export function renderPatchList(patch: Map<number, any>) {
 	});
 }
 
-export function generateGroupSelectFunc(channels: Set<number>) {
-	return () => {
-		selectedChannels = channels;
-	};
-}
-
+/**
+ * fetches the entire patch from the backend and 
+ */
 export function forceRefreshPatchList() {
 	const patch = api.ipcSendSync("getAllChannels");
 	renderPatchList(patch);
@@ -382,7 +414,7 @@ export function renderGroupList(groups: Map<number, GroupPaletteItem>) {
 		elt.dataset.clickAction = "select";
 		elt.dataset.selectType = "group";
 		elt.dataset.selectData = group.id.toString();
-		elt.onclick = generateGroupSelectFunc(group.channels);
+		elt.onclick = () => setSelectedChannels(group.channels);
 		const groupId = document.createElement("div");
 		groupId.id = `group_${group.id}_id`;
 		groupId.classList.add("group_id");
@@ -764,7 +796,8 @@ export function renderPlayback() {
 		stackCueTimingsContainerElt.classList.add("stackCueTimingsContainer");
 		stackCueTimingsElt.appendChild(stackCueTimingsContainerElt);
 
-		c.cueTransitions.forEach((tr, trName) => {
+		if(c.cueTransitions?.size) { 
+			c.cueTransitions.forEach((tr, trName) => {
 			const trElt = document.createElement("div");
 			trElt.classList.add("stackCueTimingAttr");
 			trElt.classList.add("stackCueTimingsIntensity");
@@ -784,6 +817,7 @@ export function renderPlayback() {
 
 			stackCueTimingsContainerElt.appendChild(trElt);
 		});
+	}
 
 		const stackCueOptionsElt = document.createElement("div");
 		stackCueOptionsElt.classList.add("stackCueProp");

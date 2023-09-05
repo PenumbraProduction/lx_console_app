@@ -85,36 +85,38 @@
                         <span>Playbacks</span>
                     </li>
 
-                    <li class="sidebar-item sidebar-link" data-click-action="page" data-links-to="Colour"
-                        data-cmd-token="Colour">
-                        <span><i class="fa fa-palette"></i></span>
-                        <span>Colour</span>
-                    </li>
-                    <li class="sidebar-item sidebar-link" data-click-action="page" data-links-to="Shape"
-                        data-cmd-token="Shape">
-                        <span><i class="fa-brands fa-first-order-alt"></i></span>
-                        <span>Shape</span>
-                    </li>
-                    <li class="sidebar-item sidebar-link" data-click-action="page" data-links-to="Beam"
-                        data-cmd-token="Beam">
-                        <span><i data-feather="aperture"></i></span>
-                        <span>Beam</span>
-                    </li>
-                    <li class="sidebar-item sidebar-link" data-click-action="page" data-links-to="Position"
-                        data-cmd-token="Position">
-                        <span><i class="fa fa-arrows-up-down-left-right"></i></span>
-                        <span>Position</span>
-                    </li>
-                    <li class="sidebar-item sidebar-link" data-click-action="page" data-links-to="Function"
-                        data-cmd-token="Function">
-                        <span><i data-feather="activity"></i></span>
-                        <span>Function</span>
-                    </li>
-                    <li class="sidebar-item sidebar-link" data-click-action="page" data-links-to="Uncategorised"
-                        data-cmd-token="Uncategorised">
-                        <span><i data-feather="columns"></i></span>
-                        <span>Uncategorised</span>
-                    </li>
+                    <div id="sidebar-windows" class="sidebar-section">
+                        <li class="sidebar-item sidebar-link" data-click-action="page" data-links-to="Colour"
+                            data-cmd-token="Colour">
+                            <span><i class="fa fa-palette"></i></span>
+                            <span>Colour</span>
+                        </li>
+                        <li class="sidebar-item sidebar-link" data-click-action="page" data-links-to="Shape"
+                            data-cmd-token="Shape">
+                            <span><i class="fa-brands fa-first-order-alt"></i></span>
+                            <span>Shape</span>
+                        </li>
+                        <li class="sidebar-item sidebar-link" data-click-action="page" data-links-to="Beam"
+                            data-cmd-token="Beam">
+                            <span><i data-feather="aperture"></i></span>
+                            <span>Beam</span>
+                        </li>
+                        <li class="sidebar-item sidebar-link" data-click-action="page" data-links-to="Position"
+                            data-cmd-token="Position">
+                            <span><i class="fa fa-arrows-up-down-left-right"></i></span>
+                            <span>Position</span>
+                        </li>
+                        <li class="sidebar-item sidebar-link" data-click-action="page" data-links-to="Function"
+                            data-cmd-token="Function">
+                            <span><i data-feather="activity"></i></span>
+                            <span>Function</span>
+                        </li>
+                        <li class="sidebar-item sidebar-link" data-click-action="page" data-links-to="Uncategorised"
+                            data-cmd-token="Uncategorised">
+                            <span><i data-feather="columns"></i></span>
+                            <span>Uncategorised</span>
+                        </li>
+                    </div>
                 </div>
             </div>
             <div id="sidebar-toggle" onclick="renderer.toggleSidebar();"><i data-feather="chevrons-left"></i></div>
@@ -125,7 +127,7 @@
                     <div class="title">Home</div>
 
                     <div class="container-content">
-                        
+
                         <h1>Show Files</h1>
                         <div id="showContainer">
                             <div class="loader"></div>
@@ -140,7 +142,7 @@
                         <div id="helpMessage"></div>
 
 
-                        
+
                     </div>
                 </div>
 
@@ -253,11 +255,13 @@
                     <div id="playbackContainer">
                         <div id="playbackContainerLeft">
                             <div id="playbackController">
-                                <div class="button w-2" id="goButton" onclick="renderer.api.ipcSend('playbackGo')">Go</div>
+                                <div class="button w-2" id="goButton" onclick="renderer.api.ipcSend('playbackGo')">Go
+                                </div>
                                 <!-- <div class="button w-2" id="pauseButton" onclick="renderer.api.ipcSend('playbackPause')">Pause</div> -->
-                                <div class="button w-2" id="stopButton" onclick="renderer.api.ipcSend('playbackStop')">Stop</div>
+                                <div class="button w-2" id="stopButton" onclick="renderer.api.ipcSend('playbackStop')">
+                                    Stop</div>
                                 <div class="button w-2" onclick="renderer.renderPlayback()"><i
-                                    data-feather="refresh-cw"></i></div>
+                                       data-feather="refresh-cw"></i></div>
                             </div>
                             <div id="playbackStack" class="scroll-enabled">
                                 <div class="stackCue">
@@ -266,13 +270,20 @@
                                     <div class="stackCueProp stackCueTimings">
                                         <div class="stackCueTimingsButton"><i data-feather="clock"></i></div>
                                         <div class="stackCueTimingsContainer">
-                                            <div class="stackCueTimingAttr stackCueTimingsIntensity"><span>Intensity</span><span>D:0 F:3</span></div>
-                                            <div class="stackCueTimingAttr stackCueTimingsColour"><span>Colour:</span><span>D:0 F:3</span></div>
-                                            <div class="stackCueTimingAttr stackCueTimingsBeam"><span>Beam:</span><span>D:0 F:3</span></div>
-                                            <div class="stackCueTimingAttr stackCueTimingsShape"><span>Shape:</span><span>D:0 F:3</span></div>
-                                            <div class="stackCueTimingAttr stackCueTimingsPosition"><span>Position:</span><span>D:0 F:3</span></div>
-                                            <div class="stackCueTimingAttr stackCueTimingsFunction"><span>Function:</span><span>D:0 F:3</span></div>
-                                            <div class="stackCueTimingAttr stackCueTimingsUncategorised"><span>Uncategorised:</span><span>D:0 F:3</span></div>
+                                            <div class="stackCueTimingAttr stackCueTimingsIntensity">
+                                                <span>Intensity</span><span>D:0 F:3</span></div>
+                                            <div class="stackCueTimingAttr stackCueTimingsColour">
+                                                <span>Colour:</span><span>D:0 F:3</span></div>
+                                            <div class="stackCueTimingAttr stackCueTimingsBeam">
+                                                <span>Beam:</span><span>D:0 F:3</span></div>
+                                            <div class="stackCueTimingAttr stackCueTimingsShape">
+                                                <span>Shape:</span><span>D:0 F:3</span></div>
+                                            <div class="stackCueTimingAttr stackCueTimingsPosition">
+                                                <span>Position:</span><span>D:0 F:3</span></div>
+                                            <div class="stackCueTimingAttr stackCueTimingsFunction">
+                                                <span>Function:</span><span>D:0 F:3</span></div>
+                                            <div class="stackCueTimingAttr stackCueTimingsUncategorised">
+                                                <span>Uncategorised:</span><span>D:0 F:3</span></div>
                                         </div>
                                     </div>
                                     <div class="stackCueProp stackCueOptions"><i data-feather="tool"></i></div>

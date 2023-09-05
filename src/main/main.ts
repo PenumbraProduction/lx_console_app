@@ -33,9 +33,11 @@ log.catchErrors({
 
 import * as SavesManager from "./savesManager";
 import * as PrefsManager from "./prefsManager";
+import * as VersionManager from "./versionManager";
 
 PrefsManager.loadPrefs();
 SavesManager.loadSaves();
+// VersionManager.checkForUpdates();
 
 import { loadProfileLibrary, updateProfileLibrary } from "./OFLManager";
 import * as DmxManager from "./dmxManager";
@@ -78,24 +80,10 @@ if (!gotTheLock) {
 		//
 	});
 
-	app.on("second-instance", (e, argv, workingDir, additionalData) => {
+	app.on("second-instance", (e, argv) => {
 		if (!argv[2] || !argv[2].length) return;
 		const filePath = argv[2];
-		if (!SavesManager.isValidDir(filePath)) return;
-		const pathParts = filePath.split(".");
-		if (pathParts[pathParts.length - 1] != ".lxshow") return;
-		const fileContent = fs.readFileSync(filePath).toString();
-		const showData = JSON.parse(fileContent) as ShowData;
-
-		// todo: parse all content.
-
-		const showId = showData.skeleton.id;
-
-		mainWindow.webContents.send("forceSaveShow");
-		if (!SavesManager.hasShow(showId)) {
-			SavesManager.includeShow(showData);
-		}
-		SavesManager.loadShow(showId);
+		loadShowOnLoad(filePath);
 	});
 
 	app.on("activate", () => {
@@ -103,6 +91,24 @@ if (!gotTheLock) {
 			createWindow();
 		}
 	});
+}
+
+function loadShowOnLoad(filePath: string) {
+	if (!SavesManager.isValidDir(filePath)) return;
+	const pathParts = filePath.split(".");
+	if (pathParts[pathParts.length - 1] != ".lxshow") return;
+	const fileContent = fs.readFileSync(filePath).toString();
+	const showData = JSON.parse(fileContent) as ShowData;
+
+	// todo: parse all content.
+
+	const showId = showData.skeleton.id;
+
+	mainWindow.webContents.send("forceSaveShow");
+	if (!SavesManager.hasShow(showId)) {
+		SavesManager.includeShow(showData);
+	}
+	SavesManager.loadShow(showId);
 }
 
 app.on("web-contents-created", (e, contents) => contents.on("will-navigate", (event) => event.preventDefault()));
@@ -195,6 +201,8 @@ function createWindow() {
 		splashWindow.webContents.send("updateLoadingJob", "Loading Profile Library...");
 		await loadProfileLibrary();
 
+		// VersionManager.startAutoUpdateChecker();
+
 		mainWindow.show();
 		// mainWindow.webContents.openDevTools();
 		splashWindow.close();
@@ -237,7 +245,7 @@ function submitIssue(e: Error) {
 }
 
 export function errorPopup(e: Error | string, explanation?: string, options?: { allowContinue: boolean }) {
-	options = options ? options : { allowContinue: true };
+	options = options ? options : { allowContinue: false };
 	log.error(e);
 	mainWindow.webContents.send("console.error", e);
 	dialog

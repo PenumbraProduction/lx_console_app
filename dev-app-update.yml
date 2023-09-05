@@ -1,0 +1,4 @@
+appId: io.github.PenumbraProduction.lxconsole
+publish:
+  provider: github
+  token: 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
